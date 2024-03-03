@@ -9,12 +9,10 @@ st.set_page_config(
 st.image('img/2.png', use_column_width='auto',
              caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
-st.write("# Visualizer")
-st.divider()
 st.sidebar.header("Visualizer")
 
-st.info(
-    """
-    Here yoy can find some graphs about the structure of Russian media and news flow
-"""
-)
+st.write("# Visualizer")
+st.info("""Here yoy can find some graphs about the structure of Russian media and news flow""")
+# st.divider()
+
+

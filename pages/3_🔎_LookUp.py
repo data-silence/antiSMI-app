@@ -20,7 +20,8 @@ category_selections = [st.sidebar.toggle(category, value=True) if category != 'S
 st.sidebar.slider('News amount', 1, 10, 3)
 
 
-st.write("# Ask any question to our AI and get a strange magic")
+st.write("# Search answers in the past")
+st.info("Ask any question to our AI and get a strange magic")
 st.divider()
 
 text_input = st.text_input(
