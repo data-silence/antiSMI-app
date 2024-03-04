@@ -6,7 +6,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.image('img/2.png', use_column_width='auto',
+st.image('img/9.png', use_column_width='auto',
              caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.sidebar.header("Visualizer")
