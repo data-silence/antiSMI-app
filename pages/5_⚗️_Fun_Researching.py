@@ -6,12 +6,12 @@ st.set_page_config(
     layout="wide"
 )
 
-st.image('img/2.png', use_column_width='auto',
+st.image('img/7.png', use_column_width='auto',
              caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.sidebar.header("About")
 
-st.write("# The researcher stories")
+st.write("# The researcher's stories")
 # st.divider()
 st.info("Here you can find some stories related to my researching during the project work")
 

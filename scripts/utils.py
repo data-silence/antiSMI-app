@@ -5,7 +5,7 @@ import streamlit as st
 
 api_url = "http://127.0.0.1:8000"
 
-@st.cache_data
+# @st.cache_data
 def get_df_from_handlers_response(handler: str) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
     handler_url = f"{api_url}/news/{handler}"
@@ -16,6 +16,10 @@ def get_df_from_handlers_response(handler: str) -> pd.DataFrame:
     return df
 
 
+
+
 if __name__ == "__main__":
-    df = get_df_from_handlers_response("last_quota")
-    print(df.head())
+    # df = get_df_from_handlers_response("last_quota")
+    # print(df.head())
+    test_url = f"{api_url}/api/generate"
+    response = requests.post('{"model": "llama2", "prompt": "Why is the sky blue?"}')
