@@ -1,6 +1,6 @@
 import datetime
 import streamlit as st
-
+from scripts.utils import get_df_from_handlers_response
 # from urllib.error import URLError
 
 st.set_page_config(page_title="Time machine", page_icon="💨", layout="wide")
@@ -39,4 +39,5 @@ krym_end_date = datetime.date(2014, 3, 26)
 flight_date = st.date_input("Choose a specific day or period of time no longer than a month: 🛸", (), tm_start_date, tm_last_date)
 st.caption("Available to fly in the range from 31 Aug 1999 to 31 Dec 2021. Fasten your seatbelts, and let's go!")
 
-flight_date
+# flight_date
+
