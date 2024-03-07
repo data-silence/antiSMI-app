@@ -1,9 +1,11 @@
 import pandas as pd
-import json, requests
+import json
+import requests
 from io import StringIO
 import streamlit as st
 
 api_url = "http://127.0.0.1:8000"
+
 
 # @st.cache_data
 def get_df_from_asmi(handler: str) -> pd.DataFrame:
@@ -15,6 +17,7 @@ def get_df_from_asmi(handler: str) -> pd.DataFrame:
     df = pd.read_json(StringIO(json_dump))
     return df
 
+
 @st.cache_data
 def get_df_from_handlers_response(handler: str) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
@@ -25,17 +28,18 @@ def get_df_from_handlers_response(handler: str) -> pd.DataFrame:
     df = pd.read_json(StringIO(json_dump))
     return df
 
+
 @st.cache_data
 def digest_df() -> dict:
     result_df = get_df_from_handlers_response('/news/tm/get_date_news')
     my_news = {}
     for category in result_df.category.unique():
         category_df = result_df[result_df.category == category]
-        category_list = list(zip(category_df['date'], category_df['title'], category_df['resume']))
+        # category_df.links = category_df.links.apply(lambda x: x.split())
+        category_list = list(
+            zip(category_df['date'], category_df['title'], category_df['resume'], category_df['links']))
         my_news.update({category: category_list})
     return my_news
-
-
 
 
 if __name__ == "__main__":
