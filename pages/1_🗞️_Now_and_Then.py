@@ -1,5 +1,6 @@
 import streamlit as st
-from scripts.utils import digest_df
+from scripts.utils import NewsService, categories_dict
+from scripts.interface import draw_sidebar
 
 st.set_page_config(
     page_title="Nowdays",
@@ -7,42 +8,20 @@ st.set_page_config(
     layout="wide"
 )
 
-categories_dict = {
-    'economy': {'emoj': '💰'},
-    'science': {'emoj': '🔬'},
-    'sports': {'emoj': '🏃'},
-    'technology': {'emoj': '📲'},
-    'entertainment': {'emoj': '👻'},
-    'society': {'emoj': '👲'}
-}
+news_amount_selection, category_selection, agency_selection = draw_sidebar()
 
 st.image('img/6.png', use_column_width='auto',
          caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.write("# Russian news for 25 years till nowadays")
 st.info("What is happening in Russia today? What happened on the same day in the past?")
-# st.divider()
 
-st.sidebar.header("Pickup news you want:")
-st.sidebar.slider('News amount', 1, 10, 3)
-st.sidebar.caption('Media types')
-agency_types = ['State', 'Independents', 'Foreign']
-agency_selections = [st.sidebar.toggle(agency, value=True) if agency != 'Foreign' else st.sidebar.toggle(agency) for
-                     agency in agency_types]
-st.sidebar.caption('Categories')
-categories = ['Economy', 'Science', 'Technology', 'Society', 'Entertainment', 'Sports']  # Change to sql-query
-category_selections = [st.sidebar.toggle(category, value=True) if category != 'Society' else st.sidebar.toggle(category)
-                       for category in categories]
-# print(list(zip(categories, category_selections)))
-
-
-# df = get_df_from_handlers_response('/news/tm/get_date_news')
-# st.dataframe(df, use_container_width=True)
-
-my_news = digest_df()
-
+news_service = NewsService()
+my_news = news_service.digest_df()
 selected_categories = list(my_news.keys())
+
 columns = st.columns(len(my_news))
+
 for i, column in enumerate(columns):
     category = selected_categories[i]
     emoj = categories_dict[category]['emoj']

@@ -4,7 +4,7 @@ import requests
 from io import StringIO
 import streamlit as st
 import datetime as dt
-#from datetime import datetime
+# from datetime import datetime
 import json
 import requests
 from io import StringIO
@@ -14,9 +14,6 @@ from collections import Counter
 import numpy as np
 from numpy.linalg import norm
 import random
-
-
-
 
 api_url = "http://127.0.0.1:8000"
 default_categories = ['economy', 'technology', 'entertainment', 'science', 'sports']
@@ -32,11 +29,10 @@ categories_dict = {
 tm_start_date = dt.date(1999, 8, 31)
 tm_last_date = dt.date(2023, 12, 31)
 
+
 def select_random_date():
-    delta = tm_start_date - tm_last_date
+    delta = tm_last_date - tm_start_date
     return tm_start_date + dt.timedelta(random.randint(0, delta.days))
-
-
 
 
 # @st.cache_data
@@ -50,9 +46,11 @@ def get_df_from_asmi(handler: str) -> pd.DataFrame:
     return df
 
 
+@st.cache_data
 def get_date_df_from_tm(date: dt.date) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
     handler_url = f"{api_url}/news/tm/{str(date)}"
+    print(handler_url)
     response = requests.get(handler_url).json()
     json_dump = json.dumps(response)
     df = pd.read_json(StringIO(json_dump))
@@ -84,6 +82,7 @@ def get_clusters_columns(date: dt.date) -> pd.DataFrame:
     return df
 
 
+@st.cache_data
 def filter_df(df: pd.DataFrame, amount: int = 3, categories: list = ['society', 'technology', 'sport']) -> pd.DataFrame:
     df = df.loc[df['category'].isin(categories)]
     final_labels = []
@@ -117,18 +116,13 @@ class NewsService:
         self.date_df = get_clusters_columns(date=self.date)
         self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
 
-    def set_news_amount(self, news_amount: int):
-        self.news_amount = news_amount
-        self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
-
-    def set_categories(self, categories: list[str]):
-        self.categories = categories
-        self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
-
-    def set_date_df(self, date: dt.date):
-        self.date = date
-        self.date_df = get_clusters_columns(date=self.date)
-        self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
+    def set_params(self, date: dt.date, news_amount: int, categories: list[str]):
+        compare_params = (self.date, self.news_amount, self.categories) == (date, news_amount, categories)
+        if not compare_params:
+            self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
+            if self.date != date:
+                self.date_df = get_clusters_columns(date=self.date)
+        self.date, self.news_amount, self.categories = date, news_amount, categories
 
     def get_source_links(self, title: str):
         cluster = self.most_df.label[self.most_df.title == title].iloc[0]
@@ -153,37 +147,22 @@ class NewsService:
         final_df.links = final_df.title.apply(lambda x: self.get_source_links(x))
         return final_df
 
-    def get_user_news_dict(self) -> dict:
-        final_df = self.leave_me_alone()
-        user_news_dict = final_df.to_dict(orient='records')
-        return user_news_dict
-
-
-
-
-
-def get_news_by_date(date: dt.date = default_day, news_amount: int = 3,
-                     categories: list[str] = default_categories) -> list[SFullNews]:
-    most_news = NewsService()
-    most_news.set_date_df(date=date)
-    most_news.set_news_amount(news_amount=news_amount)
-    most_news.set_categories(categories=categories)
-    dict_news = most_news.leave_me_alone().to_dict(orient='records')
-    return dict_news
-
-
-
-
-
-
-
+    def digest_df(self) -> dict:
+        result_df = self.leave_me_alone()
+        my_news = {}
+        for category in result_df.category.unique():
+            category_df = result_df[result_df.category == category]
+            # category_df.links = category_df.links.apply(lambda x: x.split())
+            category_list = list(
+                zip(category_df['date'], category_df['title'], category_df['resume'], category_df['links']))
+            my_news.update({category: category_list})
+        return my_news
 
 
 @st.cache_data
 def get_df_from_handlers_response(handler: str) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
     handler_url = f"{api_url}{handler}"
-    # print(handler_url)
     response = requests.post(handler_url).json()
     json_dump = json.dumps(response)
     df = pd.read_json(StringIO(json_dump))
@@ -196,7 +175,6 @@ def digest_df() -> dict:
     my_news = {}
     for category in result_df.category.unique():
         category_df = result_df[result_df.category == category]
-        # category_df.links = category_df.links.apply(lambda x: x.split())
         category_list = list(
             zip(category_df['date'], category_df['title'], category_df['resume'], category_df['links']))
         my_news.update({category: category_list})
