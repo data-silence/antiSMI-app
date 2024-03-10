@@ -33,7 +33,7 @@ def select_random_date():
     return tm_start_date + dt.timedelta(random.randint(0, delta.days))
 
 
-# @st.cache_data
+@st.cache_data
 def get_df_from_asmi(handler: str) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
     handler_url = f"{api_url}{handler}"
@@ -105,25 +105,31 @@ def find_sim_news(df: pd.DataFrame, q_emb: list[float]):
 @dataclass
 class NewsService:
     service_name: str = 'asmi'
-    start_date: dt.date = dt.date.today()
+    start_date: dt.date = None
     end_date: dt.date = start_date
     news_amount: int = 3
     categories: list[str] = field(default_factory=list)
+    date_df: pd.DataFrame = None
+    most_df: pd.DataFrame = None
+
 
     def __post_init__(self):
         self.categories = default_categories
-        self.date_df = get_clusters_columns(start_date=self.start_date, end_date=self.end_date)
-        self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
+        # self.date_df = get_clusters_columns(start_date=self.start_date, end_date=self.end_date)
+        # self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
 
     def set_params(self, start_date: dt.date, end_date: dt.date, news_amount: int, categories: list[str]):
-        compare_params = (
-                self.start_date, self.end_date, self.news_amount, self.categories ==
-                start_date, end_date, news_amount, categories
-        )
+        if self.date_df is None:
+            self.date_df = get_clusters_columns(start_date=start_date, end_date=end_date)
+        compare_params = ((self.start_date, self.end_date, self.news_amount, self.categories) ==
+                          (start_date, end_date, news_amount, categories))
+
         if not compare_params:
-            self.most_df = filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
             if not (self.start_date, self.end_date) == (start_date, end_date):
                 self.date_df = get_clusters_columns(start_date=start_date, end_date=end_date)
+            self.most_df = filter_df(self.date_df, amount=news_amount, categories=categories)
+        # self.date_df = get_clusters_columns(start_date=start_date, end_date=end_date)
+        # self.most_df = filter_df(self.date_df, amount=news_amount, categories=categories)
         self.start_date, self.end_date, self.news_amount, self.categories = start_date, end_date, news_amount, categories
 
     def get_source_links(self, title: str):
