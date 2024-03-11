@@ -52,3 +52,15 @@ def draw_time_selector():
         start_date, end_date = date_selection
         st.success(f"{start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}")
     return date_selection
+
+
+def draw_query_settings():
+    st.sidebar.header("Search Settings:")
+    categories = ['economy', 'science', 'technology', 'society', 'entertainment', 'sports']
+    category = st.sidebar.radio("Category", categories, horizontal=True, index=3)
+    years = st.sidebar.slider('Time frame', 1999, 2021, (1999, 2021))
+    news_amount = st.sidebar.slider('News amount', 1, 50, 10)
+    return category, years, news_amount
+
+
+

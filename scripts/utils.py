@@ -270,6 +270,18 @@ class AsmiService:
         return my_news
 
 
+@st.cache_data
+def get_answer(query: str) -> pd.DataFrame:
+    """Converts json received from API to dataframe"""
+    handler_url = f"{api_url}/news/tm/get_similar_news"
+    embedding = make_single_embs(query)
+    response = requests.post(handler_url, json=embedding).json()
+    json_dump = json.dumps(response)
+    similar_news_df = pd.read_json(StringIO(json_dump))
+    return similar_news_df
+
+
+
 # @st.cache_data
 # def get_df_from_handlers_response(handler: str) -> pd.DataFrame:
 #     """Converts json received from API to dataframe"""
@@ -287,4 +299,5 @@ if __name__ == "__main__":
     # response = requests.post('{"model": "llama2", "prompt": "Why is the sky blue?"}')
     # today_service = AsmiService()
     # print(today_service.digest_df())
-    pass
+    # pass
+    print(get_word_emb('Что пообещал Путин?'))
