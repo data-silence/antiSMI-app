@@ -16,12 +16,10 @@ import random
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 tokenizer = AutoTokenizer.from_pretrained("cointegrated/LaBSE-en-ru")
 model = AutoModel.from_pretrained("cointegrated/LaBSE-en-ru").to(device)
-
 
 api_url = "http://127.0.0.1:8000"
 default_categories = ['economy', 'technology', 'entertainment', 'science', 'sports']
@@ -122,7 +120,6 @@ class NewsService:
     date_df: pd.DataFrame = None
     most_df: pd.DataFrame = None
 
-
     def __post_init__(self):
         self.categories = default_categories
         # self.date_df = get_clusters_columns(start_date=self.start_date, end_date=self.end_date)
@@ -185,6 +182,7 @@ def make_single_embs(sentences):
     embeddings = torch.nn.functional.normalize(embeddings)
     return embeddings[0].tolist()
 
+
 @st.cache_data
 def get_today_emb():
     """Converts json received from API to dataframe"""
@@ -194,7 +192,6 @@ def get_today_emb():
     df = pd.read_json(StringIO(json_dump))
     df['embedding'] = df['news'].apply(lambda x: make_single_embs(x))
     return df
-
 
 
 def get_clusters_columns_2() -> pd.DataFrame:
@@ -220,6 +217,7 @@ def get_clusters_columns_2() -> pd.DataFrame:
     df.sort_values(by=['category', 'label'], ascending=True, inplace=True)
 
     return df
+
 
 @dataclass
 class AsmiService:
@@ -271,15 +269,16 @@ class AsmiService:
 
 
 @st.cache_data
-def get_answer(query: str) -> pd.DataFrame:
+def get_answer(query: str, start_date: datetime.date, end_date: datetime.date, news_amount: int,
+               category: str) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
-    handler_url = f"{api_url}/news/tm/get_similar_news"
+    handler_url = f"{api_url}/news/tm/get_similar_news/{start_date}/{end_date}?news_amount={news_amount}&category={category}"
     embedding = make_single_embs(query)
-    response = requests.post(handler_url, json=embedding).json()
+    data = embedding
+    response = requests.post(handler_url, json=data).json()
     json_dump = json.dumps(response)
     similar_news_df = pd.read_json(StringIO(json_dump))
     return similar_news_df
-
 
 
 # @st.cache_data

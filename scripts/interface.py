@@ -1,6 +1,6 @@
 import streamlit as st
 from scripts.utils import tm_start_date, tm_last_date, select_random_date
-
+import datetime as dt
 
 def draw_sidebar():
     st.sidebar.header("Pickup news you want:")
@@ -59,8 +59,10 @@ def draw_query_settings():
     categories = ['economy', 'science', 'technology', 'society', 'entertainment', 'sports']
     category = st.sidebar.radio("Category", categories, horizontal=True, index=3)
     years = st.sidebar.slider('Time frame', 1999, 2021, (1999, 2021))
+    start_year = dt.datetime(years[0], 1, 1)
+    end_year = dt.datetime(years[1], 12, 31)
     news_amount = st.sidebar.slider('News amount', 1, 50, 10)
-    return category, years, news_amount
+    return start_year, end_year, news_amount, category
 
 
 
