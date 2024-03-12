@@ -13,7 +13,6 @@ st.image('img/8.png', use_column_width='auto',
          caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.write("# Search answers in the past")
-st.info("👈 Pick a search setting & Ask your question 👇")
 
 start_year, end_year, news_amount, category = draw_query_settings()
 
@@ -21,12 +20,12 @@ user_query = st.text_input(
     "Enter your question here 👇",
     label_visibility="collapsed",
     disabled=False,
-    placeholder="Enter your question here...")
+    placeholder="Pick a search setting and input your question here...")
 
 if user_query:
-    similar_news_df = get_answer(query=user_query, start_date=start_year, end_date=end_year, news_amount=news_amount,
-                                 category=category)
-
+    with st.spinner('It takes about 30 seconds to find the answer in a 25 year news stream'):
+        similar_news_df = get_answer(query=user_query)
+    similar_news_df = similar_news_df.query("category==@category").query("@start_year<= date <= @end_year").head(news_amount)
     similar_news_df['year'] = similar_news_df['date'].apply(lambda x: x.year)
     similar_news_dict = {}
 

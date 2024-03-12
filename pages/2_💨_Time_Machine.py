@@ -46,6 +46,7 @@ news_amount, categories, agency = draw_sidebar()
 try:
     if dates := draw_time_selector():
         start_date, end_date = dates
-        draw_date_digest(start_date=start_date, end_date=end_date, news_amount=news_amount, categories=categories)
+        with st.spinner('It takes about 30 seconds to fly in a time machine...'):
+            draw_date_digest(start_date=start_date, end_date=end_date, news_amount=news_amount, categories=categories)
 except ValueError:
     st.error("Please complete date selection")

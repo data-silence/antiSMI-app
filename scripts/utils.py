@@ -269,16 +269,43 @@ class AsmiService:
 
 
 @st.cache_data
-def get_answer(query: str, start_date: datetime.date, end_date: datetime.date, news_amount: int,
-               category: str) -> pd.DataFrame:
+def get_answer(query: str) -> pd.DataFrame:
     """Converts json received from API to dataframe"""
-    handler_url = f"{api_url}/news/tm/get_similar_news/{start_date}/{end_date}?news_amount={news_amount}&category={category}"
+    handler_url = f"{api_url}/news/tm/get_similar_news"
     embedding = make_single_embs(query)
-    data = embedding
-    response = requests.post(handler_url, json=data).json()
+    response = requests.post(handler_url, json=embedding).json()
     json_dump = json.dumps(response)
     similar_news_df = pd.read_json(StringIO(json_dump))
+    similar_news_df.drop(columns='embedding', inplace=True)
     return similar_news_df
+
+
+major_events = {
+    1: {'start_date': dt.datetime(1999, 12, 31), 'end_date': dt.datetime(2000, 1, 3)},
+    2: {'start_date': dt.datetime(2000, 3, 25), 'end_date': dt.datetime(2000, 3, 27)},
+    3: {'start_date': dt.datetime(2000, 8, 12), 'end_date': dt.datetime(2000, 8, 15)},
+    4: {'start_date': dt.datetime(2001, 9, 11), 'end_date': dt.datetime(2001, 9, 15)},
+    5: {'start_date': dt.datetime(2002, 10, 23), 'end_date': dt.datetime(2002, 10, 26)},
+    6: {'start_date': dt.datetime(2003, 10, 25), 'end_date': dt.datetime(2003, 10, 30)},
+    7: {'start_date': dt.datetime(2004, 12, 25), 'end_date': dt.datetime(2004, 12, 27)},
+    8: {'start_date': dt.datetime(2007, 12, 10), 'end_date': dt.datetime(2007, 12, 17)},
+    9: {'start_date': dt.datetime(2008, 8, 7), 'end_date': dt.datetime(2008, 8, 12)},
+    10: {'start_date': dt.datetime(2011, 9, 24), 'end_date': dt.datetime(2011, 9, 27)},
+    11: {'start_date': dt.datetime(2011, 12, 4), 'end_date': dt.datetime(2011, 12, 6)},
+    12: {'start_date': dt.datetime(2012, 5, 6), 'end_date': dt.datetime(2012, 5, 12)},
+    13: {'start_date': dt.datetime(2014, 2, 22), 'end_date': dt.datetime(2014, 3, 1)},
+}
+
+# @st.cache_data
+# def get_answer(query: str, start_date: datetime.date, end_date: datetime.date, news_amount: int,
+#                category: str) -> pd.DataFrame:
+#     """Converts json received from API to dataframe"""
+#     handler_url = f"{api_url}/news/tm/get_similar_news/{start_date}/{end_date}?news_amount={news_amount}&category={category}"
+#     embedding = make_single_embs(query)
+#     response = requests.post(handler_url, json=embedding).json()
+#     json_dump = json.dumps(response)
+#     similar_news_df = pd.read_json(StringIO(json_dump))
+#     return similar_news_df
 
 
 # @st.cache_data
