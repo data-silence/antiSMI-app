@@ -1,5 +1,5 @@
 """
-Used to receive and pre-process news for further design of streamlit application
+Used to receive data from backend API and pre-process for further design of streamlit application
 """
 
 import pandas as pd
