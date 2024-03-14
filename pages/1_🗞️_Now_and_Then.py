@@ -1,5 +1,6 @@
 import streamlit as st
-from scripts.utils import AsmiService, categories_dict
+from scripts.utils import AsmiService
+from scripts.constants import categories_dict
 from scripts.interface import draw_sidebar
 
 st.set_page_config(
@@ -16,8 +17,8 @@ st.image('img/6.png', use_column_width='auto',
 st.write("# Russian news for 25 years till nowadays")
 st.info("What is happening in Russia today? What happened on the same day in the past?")
 
-
 news_service = AsmiService(news_amount=news_amount_selection, categories=category_selection)
+
 
 def draw_date_digest():
     user_news = news_service.digest_df()
@@ -42,5 +43,6 @@ def draw_date_digest():
             capt = column.expander("...", False)
             # column.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
             capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
+
 
 draw_date_digest()

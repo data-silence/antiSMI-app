@@ -1,20 +1,18 @@
 import streamlit as st
 from scripts.interface import draw_sidebar, draw_time_selector
-from scripts.utils import categories_dict, NewsService
+from scripts.utils import TimemachineService
+from scripts.constants import categories_dict
 import datetime as dt
 
 st.set_page_config(page_title="Time machine", page_icon="💨", layout="wide")
 st.image('img/5.png', use_column_width='auto',
          caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
-news_service = NewsService(service_name='timemachine')
+news_service = TimemachineService()
 
 
 def draw_date_digest(start_date: dt.date, end_date: dt.date, news_amount: int, categories: list[str]):
-    # print(start_date, end_date, news_amount, categories)
     news_service.set_params(start_date=start_date, end_date=end_date, news_amount=news_amount, categories=categories)
-    # print(news_service.date_df.columns)
-    # print(news_service.most_df)
 
     user_news = news_service.digest_df()
 

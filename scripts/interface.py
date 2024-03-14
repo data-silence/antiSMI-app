@@ -2,7 +2,8 @@ from types import NoneType
 
 import streamlit as st
 import extra_streamlit_components as stx
-from scripts.utils import tm_start_date, tm_last_date, select_random_date, major_events
+from scripts.constants import tm_start_date, tm_last_date, major_events
+from scripts.utils import select_random_date
 import datetime as dt
 
 
