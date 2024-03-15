@@ -5,6 +5,8 @@ import extra_streamlit_components as stx
 from scripts.constants import tm_start_date, tm_last_date, major_events
 from scripts.utils import select_random_date
 import datetime as dt
+from scripts.utils import AsmiService
+from scripts.constants import categories_dict
 
 
 def draw_sidebar():
@@ -16,15 +18,38 @@ def draw_sidebar():
                         else st.sidebar.toggle(agency) for agency in agency_types]
     st.sidebar.caption('Categories')
     categories = ['Economy', 'Science', 'Technology', 'Society', 'Entertainment', 'Sports']  # Change to sql-query
-    category_selection = [
-        st.sidebar.toggle(category, value=True) if category != 'Society' else st.sidebar.toggle(category)
-        for category in categories]
-    if category_selection[3]:
-        st.toast('Выбор этой категории не доступен бесплатным пользователям.')
+
+    category_selection = [st.sidebar.toggle(category, value=True) for category in categories]
+
+    # category_selection = [
+    #     st.sidebar.toggle(category, value=True) if category != 'Society' else st.sidebar.toggle(category)
+    #     for category in categories]
+    # if category_selection[3]:
+    #     st.toast('Выбор этой категории не доступен бесплатным пользователям.')
     zip_dict = {el[0]: el[1] for el in zip(categories, category_selection)}
     categories_selection = [k.lower() for k, v in zip_dict.items() if v]
 
     return news_amount_selection, categories_selection, agency_selection
+
+
+def draw_today(news_service: AsmiService):
+    user_news_dict = news_service.digest_df()
+    selected_categories = list(user_news_dict.keys())
+
+    for category in selected_categories:
+        st.subheader(category.title())
+        all_news = user_news_dict[category]
+        for news in all_news:
+            st.write(news[0].time())
+            st.write(news[1])
+            capt = st.expander("...", False)
+
+            capt.caption(news[2])
+            links_list = news[3].split(' ')
+            source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
+
+            capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
+
 
 
 def draw_time_selector():

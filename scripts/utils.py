@@ -227,12 +227,14 @@ class AsmiService:
     Class to handle news dataframes into news-digest for AsmiService service
     """
     service_name: str = 'asmi_brief'
+    media_type: str = None
     news_amount: int = 3
     categories: list[str] = field(default_factory=list)
 
+
     def __post_init__(self):
         self.categories = default_categories
-        self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name)
+        self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name, media_type=self.media_type)
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
 
     def set_params(self, news_amount: int, categories: list[str]):
@@ -274,5 +276,7 @@ class AsmiService:
 
 
 if __name__ == "__main__":
-    df = get_df_from_asmi("/news/asmi/today/brief")
-    print(df.head())
+    emb = make_single_embs('Повышение цен на продукты')
+    print(emb)
+    # df = get_df_from_asmi("/news/asmi/today/brief")
+    # print(df.head())
