@@ -11,6 +11,9 @@ categories_dict = {
     'society': {'emoj': '👲'}
 }
 
+agency_types = ['State', 'Independents', 'Foreign']
+agencies_types_dict = {'State': '💀️', 'Independents': '🐈', 'Foreign': '👽'}
+
 tm_start_date = dt.date(1999, 8, 31)
 tm_last_date = dt.date(2023, 12, 31)
 
