@@ -1,11 +1,9 @@
-from types import NoneType
-
 import streamlit as st
 import extra_streamlit_components as stx
 from scripts.constants import tm_start_date, tm_last_date, major_events
 from scripts.utils import select_random_date
 import datetime as dt
-from scripts.utils import AsmiService
+from scripts.utils import AsmiService, TimemachineService
 from scripts.constants import categories_dict
 
 
@@ -32,7 +30,29 @@ def draw_sidebar():
     return news_amount_selection, categories_selection, agency_selection
 
 
-def draw_today(news_service: AsmiService):
+def draw_today_single_digest(news_service: AsmiService):
+    user_news = news_service.digest_df()
+
+    selected_categories = list(user_news.keys())
+    category_columns = st.columns(len(user_news))
+
+    for i, column in enumerate(category_columns):
+        category = selected_categories[i]
+        emoj = categories_dict[category]['emoj']
+        all_news = user_news[category]
+        column.subheader(emoj + ' ' + category.title())
+        for news in all_news:
+            # column.caption(news[0].time().isoformat(timespec='minutes'))
+            column.write(news[0].time())
+            column.write(news[1])
+            column.caption(news[2])
+            links_list = news[3].split(' ')
+            source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
+            capt = column.expander("...", False)
+            capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
+
+
+def draw_today_multi_digest(news_service: AsmiService):
     user_news_dict = news_service.digest_df()
     selected_categories = list(user_news_dict.keys())
 
@@ -49,7 +69,6 @@ def draw_today(news_service: AsmiService):
             source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
 
             capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
-
 
 
 def draw_time_selector():
@@ -92,9 +111,7 @@ def draw_time_selector():
                 stx.TabBarItemData(id=12, title="", description="Million Man March"),
                 stx.TabBarItemData(id=13, title="", description="Annexation of Crimea"),
             ])
-            # st.info(f"Chosen id: {chosen_id}")
-            # st.write(str(type(chosen_id)))
-            # if isinstance(int(chosen_id), int):
+
             try:
                 chosen_id = int(chosen_id)
                 date_selection = (major_events[chosen_id]['start_date'], major_events[chosen_id]['end_date'])
@@ -105,6 +122,30 @@ def draw_time_selector():
         start_date, end_date = date_selection
         st.success(f"Your destination period: {start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}")
     return date_selection
+
+
+def draw_date_digest(news_service: TimemachineService, start_date: dt.date, end_date: dt.date, news_amount: int,
+                     categories: list[str]):
+    news_service.set_params(start_date=start_date, end_date=end_date, news_amount=news_amount, categories=categories)
+
+    user_news = news_service.digest_df()
+
+    selected_categories = list(user_news.keys())
+    category_columns = st.columns(len(user_news))
+
+    for i, column in enumerate(category_columns):
+        category = selected_categories[i]
+        emoj = categories_dict[category]['emoj']
+        all_news = user_news[category]
+        column.subheader(emoj + ' ' + category.title())
+        for news in all_news:
+            column.write(news[0].time())
+            column.write(news[1])
+            column.caption(news[2])
+            links_list = news[3].split(' ')
+            source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
+            capt = column.expander("...", False)
+            capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
 
 
 def draw_query_settings():
