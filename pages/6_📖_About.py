@@ -6,7 +6,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.image('img/10.png', use_column_width='auto',
+st.image('img/6.png', use_column_width='auto',
              caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.write("# About project")

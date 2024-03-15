@@ -11,7 +11,7 @@ st.set_page_config(
 
 news_amount_selection, category_selection, agency_selection = draw_sidebar()
 
-st.image('img/6.png', use_column_width='auto',
+st.image('img/1.png', use_column_width='auto',
          caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.write("# Russian news for 25 years till nowadays")
