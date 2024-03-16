@@ -1,10 +1,10 @@
 import streamlit as st
 import extra_streamlit_components as stx
-from scripts.constants import tm_start_date, tm_last_date, major_events
-from scripts.utils import select_random_date
+from src.constants import tm_start_date, tm_last_date, major_events
+from src.scripts import select_random_date
 import datetime as dt
-from scripts.utils import AsmiService, TimemachineService
-from scripts.constants import categories_dict, agencies_types_dict
+from src.scripts import AsmiService, TimemachineService
+from src.constants import categories_dict, agencies_types_dict
 
 
 def draw_toggle(category_list: list):

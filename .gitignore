@@ -1,4 +1,4 @@
 .env
-./scripts/embedder.py
+src/embedder.py
 /.venv/
 /.idea/

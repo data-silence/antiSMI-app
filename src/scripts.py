@@ -19,7 +19,7 @@ import random
 
 import torch
 from transformers import AutoTokenizer, AutoModel
-from scripts.constants import tm_start_date, tm_last_date, api_url, default_categories
+from src.constants import tm_start_date, tm_last_date, api_url, default_categories
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -27,7 +27,7 @@ tokenizer = AutoTokenizer.from_pretrained("cointegrated/LaBSE-en-ru")
 model = AutoModel.from_pretrained("cointegrated/LaBSE-en-ru").to(device)
 
 """
-One-off scripts
+One-off src
 """
 
 

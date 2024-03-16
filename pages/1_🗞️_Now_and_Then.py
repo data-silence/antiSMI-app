@@ -1,7 +1,7 @@
 import streamlit as st
-from scripts.constants import agencies_types_dict
-from scripts.interface import draw_sidebar, draw_today_single_digest, draw_today_multi_digest
-from scripts.utils import AsmiService
+from src.constants import agencies_types_dict
+from src.interface import draw_sidebar, draw_today_single_digest, draw_today_multi_digest
+from src.scripts import AsmiService
 
 st.set_page_config(
     page_title="Nowdays",
