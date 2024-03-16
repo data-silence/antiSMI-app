@@ -21,9 +21,6 @@ The antiSMI project explores and creates new ways of working with media for read
 Here you can find a demonstration of what we came up with using Russian-language news as an example.
 """)
 
-# st.caption("<= Use the navigation bar on the left to easily navigate through these sections")
-
-
 col1, col2 = st.columns(2)
 
 with col1:

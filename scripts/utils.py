@@ -233,7 +233,7 @@ class AsmiService:
 
 
     def __post_init__(self):
-        self.categories = default_categories
+        # self.categories = default_categories
         self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name, media_type=self.media_type)
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
 

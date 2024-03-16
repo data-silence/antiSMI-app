@@ -4,30 +4,38 @@ from scripts.constants import tm_start_date, tm_last_date, major_events
 from scripts.utils import select_random_date
 import datetime as dt
 from scripts.utils import AsmiService, TimemachineService
-from scripts.constants import categories_dict
+from scripts.constants import categories_dict, agencies_types_dict
 
 
-def draw_sidebar():
+def draw_toggle(category_list: list):
+    category_selection = [st.sidebar.toggle(category, value=True) for category in category_list]
+    zip_dict = {el[0]: el[1] for el in zip(category_list, category_selection)}
+    categories_selection = [category for category, is_presence in zip_dict.items() if is_presence]
+    return categories_selection
+
+
+def draw_sidebar(page_name: str) -> tuple:
     st.sidebar.header("Pickup news you want:")
     news_amount_selection = st.sidebar.slider('News amount', 1, 10, 3)
-    st.sidebar.caption('Media types')
-    agency_types = ['State', 'Independents', 'Foreign']
-    agency_selection = [st.sidebar.toggle(agency, value=True) if agency != 'Foreign'
-                        else st.sidebar.toggle(agency) for agency in agency_types]
-    st.sidebar.caption('Categories')
-    categories = ['Economy', 'Science', 'Technology', 'Society', 'Entertainment', 'Sports']  # Change to sql-query
 
-    category_selection = [st.sidebar.toggle(category, value=True) for category in categories]
+    match page_name:
+        case 'Now':
+            st.sidebar.caption('Media types')
+            media_types = [media for media in agencies_types_dict]
+            media_selection = draw_toggle(media_types)
 
-    # category_selection = [
-    #     st.sidebar.toggle(category, value=True) if category != 'Society' else st.sidebar.toggle(category)
-    #     for category in categories]
-    # if category_selection[3]:
-    #     st.toast('Выбор этой категории не доступен бесплатным пользователям.')
-    zip_dict = {el[0]: el[1] for el in zip(categories, category_selection)}
-    categories_selection = [k.lower() for k, v in zip_dict.items() if v]
+            st.sidebar.caption('Categories')
+            categories_types = [category for category in categories_dict]
+            categories_selection = draw_toggle(categories_types)
 
-    return news_amount_selection, categories_selection, agency_selection
+            return news_amount_selection, categories_selection, media_selection
+
+        case _:
+            st.sidebar.caption('Categories')
+            categories_types = [category for category in categories_dict]
+            categories_selection = draw_toggle(categories_types)
+
+            return news_amount_selection, categories_selection
 
 
 def draw_today_single_digest(news_service: AsmiService):

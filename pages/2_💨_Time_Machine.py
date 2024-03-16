@@ -8,7 +8,7 @@ st.image('img/2.png', use_column_width='auto',
 
 news_service = TimemachineService()
 
-news_amount, categories, agency = draw_sidebar()
+news_amount, categories = draw_sidebar('Time Machine')
 
 try:
     if dates := draw_time_selector():
