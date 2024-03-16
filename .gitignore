@@ -2,3 +2,5 @@
 ./scripts/embedder.py
 ./.venv/
 ./.idea
+/.venv/
+/.idea/
