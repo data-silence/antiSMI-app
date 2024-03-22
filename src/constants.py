@@ -1,5 +1,10 @@
 import datetime as dt
 
+import nltk
+from nltk.corpus import stopwords
+nltk.download("stopwords")
+
+
 api_url = "http://127.0.0.1:8000"
 default_categories = ['economy', 'technology', 'entertainment', 'science', 'sports']
 categories_dict = {
@@ -32,3 +37,13 @@ major_events = {
     12: {'start_date': dt.datetime(2012, 5, 6), 'end_date': dt.datetime(2012, 5, 12)},
     13: {'start_date': dt.datetime(2014, 2, 22), 'end_date': dt.datetime(2014, 3, 1)},
 }
+
+stop_words = stopwords.words('russian')
+stop_words.extend(['что', 'это', 'так',
+                    'вот', 'быть', 'как',
+                    'в', '—', 'к', 'за', 'из', 'из-за',
+                    'на', 'ок', 'кстати',
+                    'который', 'мочь', 'весь',
+                    'еще', 'также', 'свой',
+                    'ещё', 'самый', 'ул', 'комментарий',
+                    'английский', 'язык', 'года', 'году'])

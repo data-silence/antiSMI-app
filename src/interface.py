@@ -4,7 +4,10 @@ from src.constants import tm_start_date, tm_last_date, major_events
 from src.scripts import select_random_date
 import datetime as dt
 from src.scripts import AsmiService, TimemachineService
-from src.constants import categories_dict, agencies_types_dict
+from src.constants import categories_dict, agencies_types_dict, stop_words
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import pandas as pd
 
 
 def draw_toggle(category_list: list):
@@ -154,6 +157,21 @@ def draw_date_digest(news_service: TimemachineService, start_date: dt.date, end_
             source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
             capt = column.expander("...", False)
             capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
+
+
+def draw_word_cloud(temp_df: pd.DataFrame):
+    words = temp_df.title.str.split(' ').explode().values
+    words = [word.lower() for word in words if word.lower() not in stop_words]
+
+    wc = WordCloud(background_color="black", width=1600, height=800)
+    wc.generate(" ".join(words))
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 10))
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    ax.set_title(f"Tags clouds", fontsize=30)
+    ax.imshow(wc, alpha=0.98)
+    st.pyplot(fig)
 
 
 def draw_query_settings():
