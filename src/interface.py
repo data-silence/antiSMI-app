@@ -8,6 +8,7 @@ from src.constants import categories_dict, agencies_types_dict, stop_words
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 
 
 def draw_toggle(category_list: list):
@@ -87,10 +88,15 @@ def draw_time_selector():
         """This a is time machine! It can throw you into the news stream of the past. Any day in the last 25 years.""")
     mode = st.radio(
         "Change the time machine mode:",
-        ["preset", "manual", "random"], horizontal=True
+        ["today in past", "presets", "manual", "random"], horizontal=True
     )
     date_selection = (None, None)
     match mode:
+        case "today in past":
+            delta = st.slider('How many years ago?', min_value=1, max_value=24,value=20, step=1)
+            today = dt.date.today()
+            past_day = today - relativedelta(years=delta)
+            date_selection = (past_day, past_day)
         case 'manual':
             date_selection = st.date_input("Choose a specific day or period of time no longer than a month: 🛸",
                                            (),
@@ -104,7 +110,7 @@ def draw_time_selector():
                 date_selection = (random_date, random_date)
             else:
                 date_selection = ()
-        case 'preset':
+        case 'presets':
             st.divider()
             st.caption("Choose any event from this timeline. Swipe with the mouse wheel")
             chosen_id = stx.tab_bar(data=[
@@ -169,7 +175,7 @@ def draw_word_cloud(temp_df: pd.DataFrame):
     fig, ax = plt.subplots(1, 1, figsize=(20, 10))
     plt.axis("off")
     plt.tight_layout(pad=0)
-    ax.set_title(f"Tags clouds", fontsize=30)
+    ax.set_title(f"Picture of the day", fontsize=30)
     ax.imshow(wc, alpha=0.98)
     st.pyplot(fig)
 

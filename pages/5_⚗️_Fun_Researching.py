@@ -18,6 +18,8 @@ st.write("# The researcher's stories")
 # st.divider()
 st.info("Here you can find some stories related to my researching during the project work")
 
+
+
 # query = """SELECT country AS country,
 #        count(country) AS "COUNT(country)"
 # FROM public.agencies

@@ -24,6 +24,8 @@ match columns_amount:
     case 1:
         news_service = AsmiService(service_name='asmi_brief', news_amount=news_amount_selection,
                                    categories=category_selection)
+        with st.expander("Picture of the day as a tag's cloud"):
+            draw_word_cloud(news_service.date_df)
         draw_today_single_digest(news_service)
     case _:
         columns = st.columns(columns_amount)
@@ -35,8 +37,9 @@ match columns_amount:
                 agency_emoj = agencies_types_dict[agency_type]
                 column.header(agency_emoj + ' ' + agency_type)
                 draw_today_multi_digest(news_service)
+        draw_word_cloud(news_service.date_df)
 
-if news_service is not None:
-    st.empty()
-    st.subheader('Picture of the day:')
-    draw_word_cloud(news_service.date_df)
+# if news_service is not None:
+#     st.empty()
+#     st.subheader('Picture of the day:')
+#     draw_word_cloud(news_service.date_df)
