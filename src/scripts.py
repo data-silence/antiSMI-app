@@ -19,8 +19,7 @@ import random
 
 import torch
 from transformers import AutoTokenizer, AutoModel
-from src.constants import tm_start_date, tm_last_date, api_url, default_categories, stop_words
-
+from src.constants import tm_start_date, tm_last_date, api_url, default_categories
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -232,7 +231,6 @@ class AsmiService:
     news_amount: int = 3
     categories: list[str] = field(default_factory=list)
 
-
     def __post_init__(self):
         # self.categories = default_categories
         self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name, media_type=self.media_type)
@@ -276,16 +274,6 @@ class AsmiService:
         return my_news
 
 
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     emb = make_single_embs('Повышение цен на продукты')
     print(emb)
-

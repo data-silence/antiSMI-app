@@ -25,41 +25,38 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.write("""
-    ## 🗞️ Now and Then:
-    * The most popular news article of the day by categories
-    * Picture of the day using the tag cloud
+    ## 🗞️ Nowadays:
+    * The most popular news article of today by categories
     * Ability to research all sources of any news on the agency's website
-    * Day in the history
-    * The most important news of the same day in the past
+    * Picture of the day using the tag cloud
 
-    ## 💨 Time Machine:
-    * Most popular news article of any past period by categories in last 25 years
-    * Picture of the selected period using the tag cloud
-    * Ability to get direct agencies link to important news
+    ## 📊 Visualizer:
+    Here are graphs about the structure of Russian media and news flow:
+    * What the Russian media will look like on the eve of 2022
+    * AntiSMI structure and dynamics
+    * Fun visualisations and research related to news studies
 
     ## 🔎 LookUp:
     Ask any question about past events and get:
     * The answer our AI found appropriate
     * List of news articles with links that are similar to your query
-
+    * Graph of changes in the number of news items of the required subject 
     """)
 
 with col2:
     st.write("""
-    ## 📊 Visualizer:
-    Here are graphs about the structure of Russian media and news flow:
-    * What the Russian media will look like on the eve of 2022
-    * AntiSMI structure
-    * AntiSMI dynamics
-    * etc
-
-    ##  ⚗️ Fun Researching:
-    This is where the fun research I discovered working on the project will be stored:
-    * What aliens could understand by studying the Russian news
-    * What are the Russian media?
+    ## 💨 Time Machine:
+    The same ability as in the previous section, but with the past news. There are 4 modes to exploring past news with Time Machine:
+    * Today in past: find out what happened on the same day many years ago
+    * Presets: select any specified important event in the history of Russia to find out the main news of that day
+    * Manual: select the flight day to the past manually
+    * Random: let you to pick a date in the past automatically 
 
     ## 📖 About:
     * Some info about projects
     * Technical information on how the project is made
+
+
+    ##  🪙️ Donate:
     * Donate info if you want to support the project
     """)

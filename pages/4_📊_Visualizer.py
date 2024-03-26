@@ -1,8 +1,7 @@
 import streamlit as st
 
-from src.graphs import draw_countries_type_pie, draw_countries_pie, draw_region_barchart
+from src.graphs import draw_countries_pie, draw_cities_barchart, draw_top_charts
 from src.scripts import get_df_from_asmi
-
 
 st.set_page_config(
     page_title="AntiSMI project",
@@ -16,33 +15,21 @@ st.image('img/4.png', use_column_width='auto',
 st.sidebar.header("Visualizer")
 
 st.write("# Visualizer")
-st.info("""Here yoy can find some graphs about the structure of Russian media and news flow""")
-# st.divider()
+st.sidebar.success("""Here yoy can find some graphs and research about the structure of Russian media and news flow""")
 
 df = get_df_from_asmi("/agencies/all")
-# st.dataframe(df)
-# df.query("category==country" & "category != ''")
-selected_countries_types = st.radio(
-    "",
-    ['Exclude Russia', 'With Russia'],
-    horizontal=True
-)
+yandex_news_tab, antiSMI_tab, fun_research_tab = st.tabs(['Yandex News', 'Anti SMI', 'Fun Research'])
 
-st.write('Russian-language media by country')
-draw_countries_type_pie(df, filter=selected_countries_types)
+with yandex_news_tab:
+    st.info('This is graphs about Yandex News media agency partners on the eve of 2022')
+    draw_countries_pie(df)
+    st.divider()
+    draw_cities_barchart(df)
+    st.divider()
+    draw_top_charts(df)
 
+with antiSMI_tab:
+    st.info('Here you will find a visualisation of the development of the AntiSMI project')
 
-selected_countries = st.radio(
-    "",
-    ['Russian', 'Ukranian', 'Non Ukranian'],
-    horizontal=True
-)
-draw_countries_pie(df=df, country=selected_countries)
-
-selected_region = st.radio(
-    "",
-    ['Russian', 'Ukranian'],
-    horizontal=True
-)
-draw_region_barchart(df=df, country=selected_region)
-
+with fun_research_tab:
+    st.info('Fun visualisations and research related to news studies will be posted here')
