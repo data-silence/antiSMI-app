@@ -93,6 +93,27 @@ def get_answer(query: str) -> pd.DataFrame:
     similar_news_df.drop(columns='embedding', inplace=True)
     return similar_news_df
 
+@st.cache_data
+def get_news_df_by_date() -> pd.DataFrame:
+    """Converts json received from timemachine API-handlers to dataframe"""
+    handler_url = f"{api_url}/news/tm/distinct_dates"
+    response = requests.get(handler_url).json()
+    json_dump = json.dumps(response)
+    df = pd.read_json(StringIO(json_dump))
+    return df
+
+
+@st.cache_data
+def get_digit_from_tm(value_name: str):
+    """Get some digits from timemachine API-handlers"""
+    handler_url = f"{api_url}/news/tm/{value_name}"
+    response = requests.get(handler_url).json()
+    digit = json.dumps(response)
+    return digit
+
+
+
+
 
 """
 Mixin to preprocess the dataframe into the Service format
@@ -275,5 +296,6 @@ class AsmiService:
 
 
 if __name__ == "__main__":
-    emb = make_single_embs('Повышение цен на продукты')
-    print(emb)
+    # emb = make_single_embs('Повышение цен на продукты')
+    # print(emb)
+    get_digit_from_tm('news_amount')

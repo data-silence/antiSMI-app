@@ -14,7 +14,6 @@ st.image('img/1.png', use_column_width='auto',
 st.write("# AntiSMI project")
 st.caption("Explore Russian life from the last 25 years to the present day through the news. We only give you the "
            "tools you need, the conclusions are always left to you")
-# st.divider()
 
 st.info("""
 The antiSMI project explores and creates new ways of working with media for readers, journalists and researchers.\n
@@ -57,6 +56,6 @@ with col2:
     * Technical information on how the project is made
 
 
-    ##  🪙️ Donate:
+    ## 🫰 Donate:
     * Donate info if you want to support the project
     """)

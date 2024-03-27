@@ -1,7 +1,8 @@
 import streamlit as st
 
-from src.graphs import draw_countries_pie, draw_cities_barchart, draw_top_charts
-from src.scripts import get_df_from_asmi
+from src.graphs import draw_countries_pie, draw_cities_barchart, draw_top_charts, draw_tm_news_by_date, \
+    draw_calendar_heatmap, draw_metrics
+from src.scripts import get_df_from_asmi, get_news_df_by_date
 
 st.set_page_config(
     page_title="AntiSMI project",
@@ -22,14 +23,22 @@ yandex_news_tab, antiSMI_tab, fun_research_tab = st.tabs(['Yandex News', 'Anti S
 
 with yandex_news_tab:
     st.info('This is graphs about Yandex News media agency partners on the eve of 2022')
+
     draw_countries_pie(df)
     st.divider()
+
     draw_cities_barchart(df)
     st.divider()
+
     draw_top_charts(df)
 
 with antiSMI_tab:
     st.info('Here you will find a visualisation of the development of the AntiSMI project')
+    df = get_news_df_by_date()
+
+    draw_metrics()
+    draw_tm_news_by_date(df)
+    draw_calendar_heatmap(df)
 
 with fun_research_tab:
     st.info('Fun visualisations and research related to news studies will be posted here')

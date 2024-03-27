@@ -1,6 +1,9 @@
 import plotly.express as px
 import pandas as pd
 import streamlit as st
+from plotly_calplot import calplot
+
+from src.scripts import get_digit_from_tm
 
 translation_countries = {'russian': 'Россия', 'ukranian': 'Украина', 'non ukranian': 'неУкраина'}
 
@@ -89,6 +92,42 @@ def draw_top_charts(df):
                  labels={str(data_frame.index.names[0]): 'chart feature', 'count': 'numbers of news agencies'},
                  title=f'Top 10 by {features_filter}')
     fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+
+
+def draw_tm_news_by_date(df):
+    fig = px.bar(data_frame=df, y='count', x='date', height=600, title='News distribution by date')
+    fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+
+
+def draw_metrics():
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric(label='start date', value=get_digit_from_tm('min_date'))
+    with col2:
+        st.metric(label='news', value=f'{int(get_digit_from_tm('news_amount')):,}')
+    with col3:
+        st.metric(label='agencies', value=f'{int(get_digit_from_tm('agencies_amount')):,}')
+    with col4:
+        st.metric(label='categories', value=f'{int(get_digit_from_tm('categories_amount')):,}')
+    with col5:
+        st.metric(label='last date', value=get_digit_from_tm('max_date'))
+
+
+def draw_calendar_heatmap(df: pd.DataFrame):
+    st.write('Last year news distribution')
+    fig = calplot(
+        df[-365:],
+        x="date",
+        y="count",
+        total_height=210,
+        # dark_theme=True,
+        # years_title=True,
+        # month_lines_width=3,
+        gap=0,
+        colorscale="blues"
+    )
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 # fig.update_layout(uniformtext_minsize=10, uniformtext_mode='hide')
