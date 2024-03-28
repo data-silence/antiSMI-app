@@ -19,7 +19,7 @@ import random
 
 import torch
 from transformers import AutoTokenizer, AutoModel
-from src.constants import tm_start_date, tm_last_date, api_url, default_categories
+from src.constants import tm_start_date, tm_last_date, api_url, categories_dict
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -75,7 +75,6 @@ def get_df_from_asmi(handler: str) -> pd.DataFrame:
 def get_date_df_from_tm(start_date: datetime.date, end_date: datetime.date) -> pd.DataFrame:
     """Converts json received from timemachine API-handlers to dataframe"""
     handler_url = f"{api_url}/news/tm/{str(start_date)}/{str(end_date)}"
-    # print(handler_url)
     response = requests.get(handler_url).json()
     json_dump = json.dumps(response)
     df = pd.read_json(StringIO(json_dump))
@@ -92,6 +91,7 @@ def get_answer(query: str) -> pd.DataFrame:
     similar_news_df = pd.read_json(StringIO(json_dump))
     similar_news_df.drop(columns='embedding', inplace=True)
     return similar_news_df
+
 
 @st.cache_data
 def get_news_df_by_date() -> pd.DataFrame:
@@ -112,35 +112,33 @@ def get_digit_from_tm(value_name: str):
     return digit
 
 
-
-
-
 """
 Mixin to preprocess the dataframe into the Service format
 """
 
 
 class DataframeMixin:
+
     @staticmethod
-    def get_dataframe(df_type: str, media_type: str = None, start_date: datetime.date = None,
+    @st.cache_data
+    def get_dataframe(service_name: str, start_date: datetime.date = None,
                       end_date: datetime.date = None) -> pd.DataFrame:
         df = None
-        match df_type:
-            case 'asmi_brief':
-                df = get_df_from_asmi("/news/asmi/today/brief")
-                df['embedding'] = df['news'].apply(lambda x: make_single_embs(x))
-            case 'asmi_media_type':
-                df = get_df_from_asmi(f"/news/asmi/today/{media_type}")
+
+        match service_name:
+            case 'asmi':
+                df = get_df_from_asmi("/news/asmi/media")
                 df['embedding'] = df['news'].apply(lambda x: make_single_embs(x))
             case 'tm':
                 df = get_date_df_from_tm(start_date=start_date, end_date=end_date)
         return df
 
     @staticmethod
-    def get_clusters_columns(df_type: str, media_type: str = None, start_date: datetime.date = None,
+    def get_clusters_columns(service_name: str, start_date: datetime.date = None,
                              end_date: datetime.date = None) -> pd.DataFrame:
-        df = DataframeMixin.get_dataframe(df_type=df_type, media_type=media_type, start_date=start_date,
+        df = DataframeMixin.get_dataframe(service_name=service_name, start_date=start_date,
                                           end_date=end_date)
+        # st.write(df)
 
         if len(df) > 1:  # clustering is possible only if the number of news items is more than one
             model = AgglomerativeClustering(n_clusters=None, metric='cosine', linkage='complete',
@@ -163,8 +161,12 @@ class DataframeMixin:
         return df
 
     @staticmethod
-    def filter_df(df: pd.DataFrame, amount: int, categories: list) -> pd.DataFrame:
+    def filter_df(df: pd.DataFrame, amount: int, categories: list, media_type: str = None) -> pd.DataFrame:
         df = df.loc[df['category'].isin(categories)]
+        if media_type is not None:
+            selected_media = (media_type, 'Non-political', 'Neutral')
+            df = df.loc[df['media_type'].isin(selected_media)]
+
         final_labels = []
         for category in categories:
             most_tuple = Counter(list(df.label[df.category == category])).most_common(amount)
@@ -179,34 +181,11 @@ News Services
 
 
 @dataclass
-class TimemachineService:
-    """
-    Class to handle news dataframes into news-digest for Timemachine service
-    """
-    service_name: str = 'tm'
-    start_date: dt.date = None
-    end_date: dt.date = start_date
+class Service:
     news_amount: int = 3
     categories: list[str] = field(default_factory=list)
     date_df: pd.DataFrame = None
     most_df: pd.DataFrame = None
-
-    def __post_init__(self):
-        self.categories = default_categories
-
-    def set_params(self, start_date: dt.date, end_date: dt.date, news_amount: int, categories: list[str]):
-        if self.date_df is None:
-            self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name, start_date=start_date,
-                                                               end_date=end_date)
-        compare_params = ((self.start_date, self.end_date, self.news_amount, self.categories) ==
-                          (start_date, end_date, news_amount, categories))
-
-        if not compare_params:
-            if not (self.start_date, self.end_date) == (start_date, end_date):
-                self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name, start_date=start_date,
-                                                                   end_date=end_date)
-            self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories)
-        self.start_date, self.end_date, self.news_amount, self.categories = start_date, end_date, news_amount, categories
 
     def get_source_links(self, title: str):
         cluster = self.most_df.label[self.most_df.title == title].iloc[0]
@@ -231,7 +210,7 @@ class TimemachineService:
         final_df.links = final_df.title.apply(lambda x: self.get_source_links(x))
         return final_df
 
-    def digest_df(self) -> dict:
+    def digest_dict(self) -> dict:
         result_df = self.leave_me_alone()
         my_news = {}
         for category in result_df.category.unique():
@@ -243,56 +222,52 @@ class TimemachineService:
 
 
 @dataclass
-class AsmiService:
+class AsmiService(Service):
     """
     Class to handle news dataframes into news-digest for AsmiService service
     """
-    service_name: str = 'asmi_brief'
+    service_name: str = 'asmi'
     media_type: str = None
-    news_amount: int = 3
-    categories: list[str] = field(default_factory=list)
 
     def __post_init__(self):
-        # self.categories = default_categories
-        self.date_df = DataframeMixin.get_clusters_columns(df_type=self.service_name, media_type=self.media_type)
-        self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories)
+        self.categories = [category for category in categories_dict]
+        self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name)
+        self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories,
+                                                media_type=self.media_type)
 
-    def set_params(self, news_amount: int, categories: list[str]):
-        self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories)
-        self.news_amount, self.categories = news_amount, categories
+    def set_params(self, news_amount: int, categories: list[str], media_type: str):
+        self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories,
+                                                media_type=media_type)
+        self.news_amount, self.categories, self.media_type = news_amount, categories, media_type
 
-    def get_source_links(self, title: str):
-        cluster = self.most_df.label[self.most_df.title == title].iloc[0]
 
-        links_set = set()
-        links = self.most_df['links'][self.most_df.label == cluster].tolist()
-        urls = self.most_df['url'][self.most_df.label == cluster].tolist()
-        for group in links:
-            group = group.split(',')
-            links_set.update(group)
-        links_set.update(urls)
-        return ' '.join(list(links_set))
+@dataclass
+class TimemachineService(Service):
+    """
+    Class to handle news dataframes into news-digest for Timemachine service
+    """
+    service_name: str = 'tm'
+    start_date: dt.date = None
+    end_date: dt.date = start_date
 
-    def leave_me_alone(self) -> pd.DataFrame:
-        unique_labels = set(self.most_df.label.tolist())
-        url_final_list = []
-        for label in unique_labels:
-            avg_emb = np.array(list(self.most_df.embedding[self.most_df.label == label])).mean(axis=0)
-            best_url = find_sim_news(self.most_df, avg_emb).url.index[0]
-            url_final_list.append(best_url)
-        final_df = self.most_df[self.most_df.index.isin(url_final_list)].drop(columns=['sim', 'embedding', 'label'])
-        final_df.links = final_df.title.apply(lambda x: self.get_source_links(x))
-        return final_df
+    def __post_init__(self):
+        self.categories = categories_dict.keys()
 
-    def digest_df(self) -> dict:
-        result_df = self.leave_me_alone()
-        my_news = {}
-        for category in result_df.category.unique():
-            category_df = result_df[result_df.category == category]
-            category_list = list(
-                zip(category_df['date'], category_df['title'], category_df['resume'], category_df['links']))
-            my_news.update({category: category_list})
-        return my_news
+    def set_params(self, start_date: dt.date, end_date: dt.date, news_amount: int, categories: list[str]):
+        if self.date_df is None:
+            self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name, start_date=start_date,
+                                                               end_date=end_date)
+        compare_params = ((self.start_date, self.end_date, self.news_amount, self.categories) ==
+                          (start_date, end_date, news_amount, categories))
+
+        if not compare_params:
+            if not (self.start_date, self.end_date) == (start_date, end_date):
+                self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name,
+                                                                   start_date=start_date,
+                                                                   end_date=end_date)
+            self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories)
+        self.start_date, self.end_date, self.news_amount, self.categories = (
+            start_date, end_date, news_amount, categories)
 
 
 if __name__ == "__main__":

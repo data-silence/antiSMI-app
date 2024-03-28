@@ -11,7 +11,7 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 
 
-def draw_toggle(category_list: list):
+def draw_toggle(category_list: list) -> list:
     category_selection = [st.sidebar.toggle(category, value=True) for category in category_list]
     zip_dict = {el[0]: el[1] for el in zip(category_list, category_selection)}
     categories_selection = [category for category, is_presence in zip_dict.items() if is_presence]
@@ -42,45 +42,37 @@ def draw_sidebar(page_name: str) -> tuple:
             return news_amount_selection, categories_selection
 
 
-def draw_today_single_digest(news_service: AsmiService):
-    user_news = news_service.digest_df()
-
-    selected_categories = list(user_news.keys())
-    category_columns = st.columns(len(user_news))
-
-    for i, column in enumerate(category_columns):
-        category = selected_categories[i]
-        emoj = categories_dict[category]['emoj']
-        all_news = user_news[category]
-        column.subheader(emoj + ' ' + category.title())
-        for news in all_news:
-            # column.caption(news[0].time().isoformat(timespec='minutes'))
-            column.write(news[0].time())
-            column.write(news[1])
-            column.caption(news[2])
-            links_list = news[3].split(' ')
-            source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
-            capt = column.expander("...", False)
-            capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
-
-
-def draw_today_multi_digest(news_service: AsmiService):
-    user_news_dict = news_service.digest_df()
+def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'single'):
+    user_news_dict = news_service.digest_dict()
     selected_categories = list(user_news_dict.keys())
 
-    for category in selected_categories:
-        st.subheader(category.title())
-        all_news = user_news_dict[category]
-        for news in all_news:
-            st.write(news[0].time())
-            st.write(news[1])
-            capt = st.expander("...", False)
+    match mode:
+        case 'single':
+            category_columns = st.columns(len(user_news_dict))
+            for i, column in enumerate(category_columns):
+                category = selected_categories[i]
+                emoj = categories_dict[category]['emoj']
+                all_news = user_news_dict[category]
+                column.subheader(emoj + ' ' + category.title())
+                painter = column
+                draw_single_news(all_news, painter)
+        case 'multi':
+            for category in selected_categories:
+                st.subheader(category.title())
+                all_news = user_news_dict[category]
+                painter = st
+                draw_single_news(all_news, painter)
 
-            capt.caption(news[2])
-            links_list = news[3].split(' ')
-            source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
 
-            capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
+def draw_single_news(all_news: list, painter) -> None:
+    for news in all_news:
+        painter.write(news[0].time())
+        painter.write(news[1])
+        painter.caption(news[2])
+        links_list = news[3].split(' ')
+        source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
+        capt = painter.expander("...", False)
+        capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
 
 
 def draw_time_selector():
@@ -93,7 +85,7 @@ def draw_time_selector():
     date_selection = (None, None)
     match mode:
         case "today in past":
-            delta = st.slider('How many years ago?', min_value=1, max_value=24,value=20, step=1)
+            delta = st.slider('How many years ago?', min_value=1, max_value=24, value=20, step=1)
             today = dt.date.today()
             past_day = today - relativedelta(years=delta)
             date_selection = (past_day, past_day)
@@ -139,30 +131,6 @@ def draw_time_selector():
         start_date, end_date = date_selection
         st.success(f"Your destination period: {start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}")
     return date_selection
-
-
-def draw_date_digest(news_service: TimemachineService, start_date: dt.date, end_date: dt.date, news_amount: int,
-                     categories: list[str]):
-    news_service.set_params(start_date=start_date, end_date=end_date, news_amount=news_amount, categories=categories)
-
-    user_news = news_service.digest_df()
-
-    selected_categories = list(user_news.keys())
-    category_columns = st.columns(len(user_news))
-
-    for i, column in enumerate(category_columns):
-        category = selected_categories[i]
-        emoj = categories_dict[category]['emoj']
-        all_news = user_news[category]
-        column.subheader(emoj + ' ' + category.title())
-        for news in all_news:
-            column.write(news[0].time())
-            column.write(news[1])
-            column.caption(news[2])
-            links_list = news[3].split(' ')
-            source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
-            capt = column.expander("...", False)
-            capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
 
 
 def draw_word_cloud(temp_df: pd.DataFrame):

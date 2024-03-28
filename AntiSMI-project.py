@@ -45,7 +45,8 @@ with col1:
 with col2:
     st.write("""
     ## 💨 Time Machine:
-    The same ability as in the previous section, but with the past news. There are 4 modes to exploring past news with Time Machine:
+    The same ability as in the previous section, but with the past news. 
+    There are 4 modes to exploring past news with Time Machine:
     * Today in past: find out what happened on the same day many years ago
     * Presets: select any specified important event in the history of Russia to find out the main news of that day
     * Manual: select the flight day to the past manually

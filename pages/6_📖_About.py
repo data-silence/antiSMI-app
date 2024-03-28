@@ -7,7 +7,7 @@ st.set_page_config(
 )
 
 st.image('img/6.png', use_column_width='auto',
-             caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
+         caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.write("# About project")
 st.divider()
@@ -68,8 +68,6 @@ with col1:
         - SuperSet [analytics, dashboards]
         """
     )
-
-
 
 with col2:
     st.markdown(

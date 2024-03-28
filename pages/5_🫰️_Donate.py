@@ -1,8 +1,5 @@
 import streamlit as st
 
-# from sqlalchemy import create_engine, text
-
-
 st.set_page_config(
     page_title="AntiSMI project",
     page_icon="📰️",
@@ -23,10 +20,3 @@ st.info(
 st.write('IBAN $: TR41 0013 4000 0210 3974 9000 02')
 st.write('IBAN €: TR14 0013 4000 0210 3974 9000 03')
 st.write('IBAN ₽: TR84 0013 4000 0210 3974 9000 04')
-
-# query = """SELECT country AS country,
-#        count(country) AS "COUNT(country)"
-# FROM public.agencies
-# GROUP BY country
-# ORDER BY "COUNT(country)" DESC
-# LIMIT 100;"""
