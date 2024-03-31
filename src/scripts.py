@@ -56,12 +56,45 @@ def find_sim_news(df: pd.DataFrame, q_emb: list[float]):
     return best_result
 
 
+def get_time_period(start_date: datetime.date = datetime.now(),
+                    end_date: datetime.date = None) -> tuple:  # + timedelta(hours=3)
+    if end_date is None:
+        end_date = start_date
+
+    start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=00, minute=00)
+    end = datetime(year=end_date.year, month=end_date.month, day=end_date.day, hour=23, minute=59)
+    part = None
+
+    if start_date.day == datetime.today().day:
+        if start_date.hour in range(0, 10):
+            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day - 1, hour=20, minute=56)
+            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day - 1, hour=22, minute=55)
+            part = 0
+        if start_date.hour in range(10, 14):
+            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day - 1, hour=22, minute=56)
+            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=8, minute=55)
+            part = 1
+        if start_date.hour in range(14, 18):
+            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=8, minute=56)
+            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=12, minute=55)
+            part = 2
+        if start_date.hour in range(18, 22):
+            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=12, minute=56)
+            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=16, minute=55)
+            part = 3
+        if start_date.hour in range(22, 24):
+            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=16, minute=56)
+            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=20, minute=55)
+            part = 4
+
+    return start, end, part
+
+
 """
 From handlers interpreters
 """
 
 
-@st.cache_data
 def get_df_from_asmi(handler: str) -> pd.DataFrame:
     """Converts json received from asmi API-handlers to dataframe"""
     handler_url = f"{api_url}{handler}"
@@ -69,6 +102,15 @@ def get_df_from_asmi(handler: str) -> pd.DataFrame:
     json_dump = json.dumps(response)
     df = pd.read_json(StringIO(json_dump))
     return df
+
+
+@st.cache_data
+def get_today_news(start: dt.datetime, end: dt.datetime, part: str) -> pd.DataFrame:
+    df_news = get_df_from_asmi(handler="/news/asmi/today")
+    st.caption(
+        f"This is today the part #{part} news digest. The last packet has been received for period between "
+        f"{start} and {end}")
+    return df_news
 
 
 @st.cache_data
@@ -120,14 +162,15 @@ Mixin to preprocess the dataframe into the Service format
 class DataframeMixin:
 
     @staticmethod
-    @st.cache_data
     def get_dataframe(service_name: str, start_date: datetime.date = None,
                       end_date: datetime.date = None) -> pd.DataFrame:
         df = None
 
         match service_name:
             case 'asmi':
-                df = get_df_from_asmi("/news/asmi/media")
+                start, end, part = get_time_period()
+                # df = get_df_from_asmi("/news/asmi/today")
+                df = get_today_news(start, end, part)
                 df['embedding'] = df['news'].apply(lambda x: make_single_embs(x))
             case 'tm':
                 df = get_date_df_from_tm(start_date=start_date, end_date=end_date)
@@ -161,11 +204,14 @@ class DataframeMixin:
         return df
 
     @staticmethod
-    def filter_df(df: pd.DataFrame, amount: int, categories: list, media_type: str = None) -> pd.DataFrame:
-        df = df.loc[df['category'].isin(categories)]
-        if media_type is not None:
-            selected_media = (media_type, 'Non-political', 'Neutral')
-            df = df.loc[df['media_type'].isin(selected_media)]
+    def filter_df(df: pd.DataFrame, amount: int, categories: list, media_type: list) -> pd.DataFrame:
+        if media_type:
+            df = df.loc[df['category'].isin(categories) & df['media_type'].isin(media_type)]
+        else:
+            df = df.loc[df['category'].isin(categories)]
+        # if media_type is not None:
+        #     selected_media = (media_type, 'Non-political', 'Neutral')
+        #     df = df.loc[df['media_type'].isin(selected_media)]
 
         final_labels = []
         for category in categories:
@@ -227,7 +273,7 @@ class AsmiService(Service):
     Class to handle news dataframes into news-digest for AsmiService service
     """
     service_name: str = 'asmi'
-    media_type: str = None
+    media_type: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         self.categories = [category for category in categories_dict]
@@ -235,7 +281,7 @@ class AsmiService(Service):
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories,
                                                 media_type=self.media_type)
 
-    def set_params(self, news_amount: int, categories: list[str], media_type: str):
+    def set_params(self, news_amount: int, categories: list[str], media_type: list):
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories,
                                                 media_type=media_type)
         self.news_amount, self.categories, self.media_type = news_amount, categories, media_type
@@ -249,6 +295,7 @@ class TimemachineService(Service):
     service_name: str = 'tm'
     start_date: dt.date = None
     end_date: dt.date = start_date
+    media_type: list = None
 
     def __post_init__(self):
         self.categories = categories_dict.keys()
@@ -265,7 +312,8 @@ class TimemachineService(Service):
                 self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name,
                                                                    start_date=start_date,
                                                                    end_date=end_date)
-            self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories)
+            self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories,
+                                                    media_type=self.media_type)
         self.start_date, self.end_date, self.news_amount, self.categories = (
             start_date, end_date, news_amount, categories)
 

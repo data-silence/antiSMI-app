@@ -18,7 +18,7 @@ def draw_toggle(category_list: list) -> list:
     return categories_selection
 
 
-def draw_sidebar(page_name: str) -> tuple:
+def draw_sidebar(page_name: str) -> tuple | bool:
     st.sidebar.header("Pickup news you want:")
     news_amount_selection = st.sidebar.slider('News amount', 1, 10, 3)
 
@@ -27,10 +27,14 @@ def draw_sidebar(page_name: str) -> tuple:
             st.sidebar.caption('Media types')
             media_types = [media for media in agencies_types_dict]
             media_selection = draw_toggle(media_types)
+            media_selection = [media.title() for media in media_selection]
 
             st.sidebar.caption('Categories')
             categories_types = [category for category in categories_dict]
             categories_selection = draw_toggle(categories_types)
+
+            if not media_selection or not categories_selection:
+                return False
 
             return news_amount_selection, categories_selection, media_selection
 
@@ -150,8 +154,8 @@ def draw_word_cloud(temp_df: pd.DataFrame):
 
 def draw_query_settings():
     st.sidebar.header("Search Settings:")
-    categories = ['economy', 'science', 'technology', 'society', 'entertainment', 'sports']
-    category = st.sidebar.radio("Category", categories, horizontal=True, index=3)
+    categories = categories_dict.keys()
+    category = st.sidebar.radio("Category", categories, horizontal=True, index=5)
     years = st.sidebar.slider('Time frame', 1999, 2021, (1999, 2021))
     start_year = dt.datetime(years[0], 1, 1)
     end_year = dt.datetime(years[1], 12, 31)
