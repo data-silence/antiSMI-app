@@ -154,10 +154,8 @@ def draw_word_cloud(temp_df: pd.DataFrame):
 
 def draw_query_settings():
     st.sidebar.header("Search Settings:")
-    categories = categories_dict.keys()
-    category = st.sidebar.radio("Category", categories, horizontal=True, index=5)
     years = st.sidebar.slider('Time frame', 1999, 2021, (1999, 2021))
     start_year = dt.datetime(years[0], 1, 1)
     end_year = dt.datetime(years[1], 12, 31)
     news_amount = st.sidebar.slider('News amount', 1, 100, 50)
-    return start_year, end_year, news_amount, category
+    return start_year, end_year, news_amount

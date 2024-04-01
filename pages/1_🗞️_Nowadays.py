@@ -36,7 +36,7 @@ if user_selection := draw_sidebar('Now'):
                                         media_type=user_media)
                 with column:
                     agency_type = media_selection[i]
-                    agency_emoj = agencies_types_dict[agency_type]
+                    agency_emoj = agencies_types_dict[agency_type.lower()]
                     column.header(agency_emoj + ' ' + agency_type)
                     draw_digest(news_service, mode='multi')
         case False:

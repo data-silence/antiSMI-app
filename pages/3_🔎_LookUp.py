@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from src.scripts import get_answer
+from src.scripts import get_answer_df
 from src.interface import draw_query_settings
 
 st.set_page_config(
@@ -14,7 +14,7 @@ st.image('img/3.png', use_column_width='auto',
 
 st.write("# Search answers in the past")
 
-start_year, end_year, news_amount, category = draw_query_settings()
+start_year, end_year, news_amount = draw_query_settings()
 
 user_query = st.text_input(
     "Enter your question here 👇",
@@ -24,9 +24,15 @@ user_query = st.text_input(
 
 if user_query:
     with st.spinner('It takes about 30 seconds to find the answer in a 25 year news stream'):
-        similar_news_df = get_answer(query=user_query)
-    similar_news_df = similar_news_df.query("category==@category").query("@start_year<= date <= @end_year").head(news_amount)
+        similar_news_df = get_answer_df(start_date=start_year, end_date=end_year, query=user_query)
+
     similar_news_df['year'] = similar_news_df['date'].apply(lambda x: x.year)
+
+    data_frame = pd.DataFrame(similar_news_df['year'].value_counts(), columns=['count'])
+    st.caption('Distribution of responses over time')
+    st.bar_chart(data_frame, color='#ffaa0088')
+
+    similar_news_df = similar_news_df.head(news_amount)
     similar_news_dict = {}
 
     for y in similar_news_df.year.unique():
@@ -34,10 +40,6 @@ if user_query:
         year_list = list(
             zip(year_df['date'], year_df['title'], year_df['resume'], year_df['links']))
         similar_news_dict.update({int(y): year_list})
-
-    data_frame = pd.DataFrame(similar_news_df['year'].value_counts(), columns=['count'])
-    st.caption('Distribution of responses over time')
-    st.bar_chart(data_frame, color='#ffaa0088')
 
     selected_years = list(sorted(similar_news_dict.keys()))
 

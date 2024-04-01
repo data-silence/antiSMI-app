@@ -8,7 +8,6 @@ import datetime as dt
 from datetime import datetime
 
 import json
-import requests
 from io import StringIO
 from sklearn.cluster import AgglomerativeClustering
 from dataclasses import dataclass, field
@@ -16,6 +15,9 @@ from collections import Counter
 import numpy as np
 from numpy.linalg import norm
 import random
+
+import httpx
+import asyncio
 
 import torch
 from transformers import AutoTokenizer, AutoModel
@@ -63,28 +65,28 @@ def get_time_period(start_date: datetime.date = datetime.now(),
 
     start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=00, minute=00)
     end = datetime(year=end_date.year, month=end_date.month, day=end_date.day, hour=23, minute=59)
+    one_day = dt.timedelta(days=1)
     part = None
 
-    if start_date.day == datetime.today().day:
+    if start_date == datetime.today():
         if start_date.hour in range(0, 10):
-            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day - 1, hour=20, minute=56)
-            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day - 1, hour=22, minute=55)
+            start = start.replace(hour=20, minute=56) - one_day
+            end = end.replace(hour=22, minute=55) - one_day
             part = 0
         if start_date.hour in range(10, 14):
-            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day - 1, hour=22, minute=56)
-            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=8, minute=55)
+            start = start.replace(hour=22, minute=56) - one_day
+            end = end.replace(hour=8, minute=55)
             part = 1
         if start_date.hour in range(14, 18):
-            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=8, minute=56)
-            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=12, minute=55)
+            start = start.replace(hour=8, minute=56)
+            end = end.replace(hour=12, minute=55)
             part = 2
         if start_date.hour in range(18, 22):
-            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=12, minute=56)
-            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=16, minute=55)
+            start = start.replace(hour=12, minute=56)
+            end = end.replace(hour=16, minute=55)
             part = 3
         if start_date.hour in range(22, 24):
-            start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=16, minute=56)
-            end = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=20, minute=55)
+Async
             part = 4
 
     return start, end, part
@@ -94,62 +96,88 @@ def get_time_period(start_date: datetime.date = datetime.now(),
 From handlers interpreters
 """
 
+"""Common"""
 
-def get_df_from_asmi(handler: str) -> pd.DataFrame:
+
+async def get_response(handler: str) -> json:
     """Converts json received from asmi API-handlers to dataframe"""
-    handler_url = f"{api_url}{handler}"
-    response = requests.get(handler_url).json()
+    async with httpx.AsyncClient() as client:
+        timeout = httpx.Timeout(10.0, read=None)
+        response = await client.get(handler, timeout=timeout)
+        return response.json()
+
+
+def get_df_from_response(handler: str) -> pd.DataFrame:
+    response = asyncio.run(get_response(handler))
     json_dump = json.dumps(response)
     df = pd.read_json(StringIO(json_dump))
     return df
+
+
+"""Get from Asmi Service"""
 
 
 @st.cache_data
 def get_today_news(start: dt.datetime, end: dt.datetime, part: str) -> pd.DataFrame:
-    df_news = get_df_from_asmi(handler="/news/asmi/today")
+    handler_url = "/news/asmi/today"
+    handler = f"{api_url}{handler_url}"
+    df_today_news = get_df_from_response(handler=handler)
     st.caption(
         f"This is today the part #{part} news digest. The last packet has been received for period between "
         f"{start} and {end}")
-    return df_news
+    return df_today_news
+
+
+@st.cache_data
+def get_all_agencies():
+    handler_url = "/agencies/all"
+    handler = f"{api_url}{handler_url}"
+    df_all_agencies = get_df_from_response(handler=handler)
+    return df_all_agencies
+
+
+"""Get from Timemachine Service"""
+
+
+def get_url_from_tm(start_date: datetime.date, end_date: datetime.date, query: str = None) -> str:
+    """Converts json received from timemachine API-handlers to dataframe"""
+    if query is None:
+        handler = f"{api_url}/news/tm/{start_date}/{end_date}"
+    else:
+        handler = f"{api_url}/news/tm/find_similar_news/{start_date}/{end_date}?query={query}"
+    return handler
 
 
 @st.cache_data
 def get_date_df_from_tm(start_date: datetime.date, end_date: datetime.date) -> pd.DataFrame:
-    """Converts json received from timemachine API-handlers to dataframe"""
-    handler_url = f"{api_url}/news/tm/{str(start_date)}/{str(end_date)}"
-    response = requests.get(handler_url).json()
-    json_dump = json.dumps(response)
-    df = pd.read_json(StringIO(json_dump))
-    return df
+    handler = get_url_from_tm(start_date=start_date, end_date=end_date)
+    date_df = get_df_from_response(handler=handler)
+    return date_df
 
 
 @st.cache_data
-def get_answer(query: str) -> pd.DataFrame:
-    """Sends sentence and get similar-news from API"""
-    handler_url = f"{api_url}/news/tm/get_similar_news"
-    embedding = make_single_embs(query)
-    response = requests.post(handler_url, json=embedding).json()
-    json_dump = json.dumps(response)
-    similar_news_df = pd.read_json(StringIO(json_dump))
-    similar_news_df.drop(columns='embedding', inplace=True)
-    return similar_news_df
+def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str) -> pd.DataFrame:
+    handler = get_url_from_tm(start_date=start_date, end_date=end_date, query=query)
+    answer_df = get_df_from_response(handler=handler)
+    return answer_df
+
+
+"""Get for Graphs"""
 
 
 @st.cache_data
-def get_news_df_by_date() -> pd.DataFrame:
+def get_distinct_dates_news_df() -> pd.DataFrame:
     """Converts json received from timemachine API-handlers to dataframe"""
-    handler_url = f"{api_url}/news/tm/distinct_dates"
-    response = requests.get(handler_url).json()
-    json_dump = json.dumps(response)
-    df = pd.read_json(StringIO(json_dump))
-    return df
+    handler = f"{api_url}/news/tm/distinct_dates"
+    distinct_dates_news_df = get_df_from_response(handler=handler)
+    return distinct_dates_news_df
 
 
 @st.cache_data
 def get_digit_from_tm(value_name: str):
     """Get some digits from timemachine API-handlers"""
-    handler_url = f"{api_url}/news/tm/{value_name}"
-    response = requests.get(handler_url).json()
+    handler = f"{api_url}/news/tm/{value_name}"
+    response = asyncio.run(get_response(handler=handler))
     digit = json.dumps(response)
     return digit
 
@@ -181,12 +209,11 @@ class DataframeMixin:
                              end_date: datetime.date = None) -> pd.DataFrame:
         df = DataframeMixin.get_dataframe(service_name=service_name, start_date=start_date,
                                           end_date=end_date)
-        # st.write(df)
 
         if len(df) > 1:  # clustering is possible only if the number of news items is more than one
-            model = AgglomerativeClustering(n_clusters=None, metric='cosine', linkage='complete',
-                                            distance_threshold=0.3)
-            labels = model.fit_predict(list(df.embedding))
+            clust_model = AgglomerativeClustering(n_clusters=None, metric='cosine', linkage='complete',
+                                                  distance_threshold=0.3)
+            labels = clust_model.fit_predict(list(df.embedding))
             df.loc[:, 'label'] = labels
 
         elif len(df) == 1:  # if there is only one news item, we assign it a label = -1
@@ -209,9 +236,6 @@ class DataframeMixin:
             df = df.loc[df['category'].isin(categories) & df['media_type'].isin(media_type)]
         else:
             df = df.loc[df['category'].isin(categories)]
-        # if media_type is not None:
-        #     selected_media = (media_type, 'Non-political', 'Neutral')
-        #     df = df.loc[df['media_type'].isin(selected_media)]
 
         final_labels = []
         for category in categories:
