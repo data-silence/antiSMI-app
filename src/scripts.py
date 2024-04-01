@@ -86,7 +86,8 @@ def get_time_period(start_date: datetime.date = datetime.now(),
             end = end.replace(hour=16, minute=55)
             part = 3
         if start_date.hour in range(22, 24):
-Async
+            start = start.replace(hour=16, minute=56)
+            end = end.replace(hour=20, minute=55)
             part = 4
 
     return start, end, part
