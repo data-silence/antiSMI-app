@@ -1,5 +1,5 @@
 import streamlit as st
-from src.constants import agencies_types_dict
+from src.constants import media_types_dict
 from src.interface import draw_sidebar, draw_word_cloud, draw_digest
 from src.scripts import AsmiService
 
@@ -36,7 +36,7 @@ if user_selection := draw_sidebar('Now'):
                                         media_type=user_media)
                 with column:
                     agency_type = media_selection[i]
-                    agency_emoj = agencies_types_dict[agency_type.lower()]
+                    agency_emoj = media_types_dict[agency_type.lower()]
                     column.header(agency_emoj + ' ' + agency_type)
                     draw_digest(news_service, mode='multi')
         case False:

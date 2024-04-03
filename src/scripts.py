@@ -118,7 +118,7 @@ def get_df_from_response(handler: str) -> pd.DataFrame:
 """Get from Asmi Service"""
 
 
-@st.cache_data
+# @st.cache_data
 def get_today_news(start: dt.datetime, end: dt.datetime, part: str) -> pd.DataFrame:
     handler_url = "/news/asmi/today"
     handler = f"{api_url}{handler_url}"
@@ -191,6 +191,7 @@ Mixin to preprocess the dataframe into the Service format
 class DataframeMixin:
 
     @staticmethod
+    # @st.cache_data(show_spinner=False)
     def get_dataframe(service_name: str, start_date: datetime.date = None,
                       end_date: datetime.date = None) -> pd.DataFrame:
         df = None

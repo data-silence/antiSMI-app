@@ -4,7 +4,7 @@ from src.constants import tm_start_date, tm_last_date, major_events
 from src.scripts import select_random_date
 import datetime as dt
 from src.scripts import AsmiService, TimemachineService
-from src.constants import categories_dict, agencies_types_dict, stop_words
+from src.constants import categories_dict, media_types_dict, stop_words
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -25,7 +25,7 @@ def draw_sidebar(page_name: str) -> tuple | bool:
     match page_name:
         case 'Now':
             st.sidebar.caption('Media types')
-            media_types = [media for media in agencies_types_dict]
+            media_types = [media for media in media_types_dict]
             media_selection = draw_toggle(media_types)
             media_selection = [media.title() for media in media_selection]
 
@@ -46,6 +46,7 @@ def draw_sidebar(page_name: str) -> tuple | bool:
             return news_amount_selection, categories_selection
 
 
+@st.cache_resource
 def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'single'):
     user_news_dict = news_service.digest_dict()
     selected_categories = list(user_news_dict.keys())
@@ -109,22 +110,8 @@ def draw_time_selector():
         case 'presets':
             st.divider()
             st.caption("Choose any event from this timeline. Swipe with the mouse wheel")
-            chosen_id = stx.tab_bar(data=[
-                stx.TabBarItemData(id=1, title="", description="Yeltsin's resignation"),
-                stx.TabBarItemData(id=2, title="", description="President Putin"),
-                stx.TabBarItemData(id=3, title="", description="Kursk"),
-                stx.TabBarItemData(id=4, title="", description="September 11"),
-                stx.TabBarItemData(id=5, title="", description="Nord-Ost"),
-                stx.TabBarItemData(id=6, title="", description="Yukos case"),
-                stx.TabBarItemData(id=7, title="", description="Orange Revolution"),
-                stx.TabBarItemData(id=8, title="", description="Medvedev as Preemnik"),
-                stx.TabBarItemData(id=9, title="", description="Georgian war"),
-                stx.TabBarItemData(id=10, title="", description="Putin's back"),
-                stx.TabBarItemData(id=11, title="", description="Bolotnaya rallies"),
-                stx.TabBarItemData(id=12, title="", description="Million Man March"),
-                stx.TabBarItemData(id=13, title="", description="Annexation of Crimea"),
-            ])
-
+            chosen_id = stx.tab_bar(data=[stx.TabBarItemData(id=i, title="", description=el['description']) for i, el in
+                                          enumerate(major_events)])
             try:
                 chosen_id = int(chosen_id)
                 date_selection = (major_events[chosen_id]['start_date'], major_events[chosen_id]['end_date'])
