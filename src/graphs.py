@@ -5,7 +5,7 @@ from plotly_calplot import calplot
 
 from src.scripts import get_digit_from_tm
 
-translation_countries = {'russian': 'Россия', 'ukranian': 'Украина', 'non ukranian': 'неУкраина'}
+from src.constants import translation_countries
 
 
 def draw_countries_pie(df: pd.DataFrame):

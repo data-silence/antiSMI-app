@@ -169,7 +169,7 @@ def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str
 @st.cache_data
 def get_distinct_dates_news_df() -> pd.DataFrame:
     """Converts json received from timemachine API-handlers to dataframe"""
-    handler = f"{api_url}/news/tm/distinct_dates"
+    handler = f"{api_url}/graphs/tm/distinct_dates"
     distinct_dates_news_df = get_df_from_response(handler=handler)
     return distinct_dates_news_df
 
@@ -177,7 +177,7 @@ def get_distinct_dates_news_df() -> pd.DataFrame:
 @st.cache_data
 def get_digit_from_tm(value_name: str):
     """Get some digits from timemachine API-handlers"""
-    handler = f"{api_url}/news/tm/{value_name}"
+    handler = f"{api_url}/graphs/tm/{value_name}"
     response = asyncio.run(get_response(handler=handler))
     digit = json.dumps(response)
     return digit

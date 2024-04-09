@@ -1,11 +1,17 @@
+"""Stores immutable data - common constants, dictionaries, lists"""
+
 import datetime as dt
+import os
+from dotenv import load_dotenv
 
 import nltk
 from nltk.corpus import stopwords
 
 nltk.download("stopwords")
 
-api_url = "http://127.0.0.1:8000"
+load_dotenv()
+
+api_url = os.getenv("API_URL")
 
 categories_dict = {
     'economy': {'emoj': '💰'},
@@ -17,6 +23,8 @@ categories_dict = {
 }
 
 media_types_dict = {'state': '💀️', 'independents': '🐈', 'foreign': '👽'}
+
+translation_countries = {'russian': 'Россия', 'ukranian': 'Украина', 'non ukranian': 'неУкраина'}
 
 tm_start_date = dt.date(1999, 8, 31)
 tm_last_date = dt.date(2023, 12, 31)
