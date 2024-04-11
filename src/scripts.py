@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 import datetime as dt
 from datetime import datetime
+import pytz
 
 import json
 from io import StringIO
@@ -19,14 +20,16 @@ import random
 import httpx
 import asyncio
 
-import torch
-from transformers import AutoTokenizer, AutoModel
 from src.constants import tm_start_date, tm_last_date, api_url, categories_dict
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# import torch
+# from transformers import AutoTokenizer, AutoModel
 
-tokenizer = AutoTokenizer.from_pretrained("cointegrated/LaBSE-en-ru")
-model = AutoModel.from_pretrained("cointegrated/LaBSE-en-ru").to(device)
+#
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+#
+# tokenizer = AutoTokenizer.from_pretrained("cointegrated/LaBSE-en-ru")
+# model = AutoModel.from_pretrained("cointegrated/LaBSE-en-ru").to(device)
 
 """
 One-off src
@@ -38,13 +41,13 @@ def select_random_date():
     return tm_start_date + dt.timedelta(random.randint(0, delta.days))
 
 
-def make_single_embs(sentences):
-    encoded_input = tokenizer(sentences, padding=True, truncation=True, max_length=64, return_tensors='pt').to(device)
-    with torch.no_grad():
-        model_output = model(**encoded_input)
-    embeddings = model_output.pooler_output
-    embeddings = torch.nn.functional.normalize(embeddings)
-    return embeddings[0].tolist()
+# def make_single_embs(sentences):
+#     encoded_input = tokenizer(sentences, padding=True, truncation=True, max_length=64, return_tensors='pt').to(device)
+#     with torch.no_grad():
+#         model_output = model(**encoded_input)
+#     embeddings = model_output.pooler_output
+#     embeddings = torch.nn.functional.normalize(embeddings)
+#     return embeddings[0].tolist()
 
 
 def cos_simularity(a, b):
@@ -119,13 +122,21 @@ def get_df_from_response(handler: str) -> pd.DataFrame:
 
 
 # @st.cache_data
-def get_today_news(start: dt.datetime, end: dt.datetime, part: str) -> pd.DataFrame:
+def get_today_news_old_edition(start: dt.datetime, end: dt.datetime, part: str) -> pd.DataFrame:
     handler_url = "/news/asmi/today"
     handler = f"{api_url}{handler_url}"
     df_today_news = get_df_from_response(handler=handler)
     st.caption(
         f"This is today the part #{part} news digest. The last packet has been received for period between "
         f"{start} and {end}")
+    return df_today_news
+
+
+@st.cache_data
+def get_today_news(user_date: dt.date) -> pd.DataFrame:
+    handler_url = f"/news/asmi/date_news/{user_date}"
+    handler = f"{api_url}{handler_url}"
+    df_today_news = get_df_from_response(handler=handler)
     return df_today_news
 
 
@@ -156,7 +167,7 @@ def get_date_df_from_tm(start_date: datetime.date, end_date: datetime.date) -> p
     return date_df
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str) -> pd.DataFrame:
     handler = get_url_from_tm(start_date=start_date, end_date=end_date, query=query)
     answer_df = get_df_from_response(handler=handler)
@@ -198,10 +209,8 @@ class DataframeMixin:
 
         match service_name:
             case 'asmi':
-                start, end, part = get_time_period()
-                # df = get_df_from_asmi("/news/asmi/today")
-                df = get_today_news(start, end, part)
-                df['embedding'] = df['news'].apply(lambda x: make_single_embs(x))
+                user_date = datetime.now(pytz.timezone('Europe/Moscow')).date()
+                df = get_today_news(user_date=user_date)
             case 'tm':
                 df = get_date_df_from_tm(start_date=start_date, end_date=end_date)
         return df

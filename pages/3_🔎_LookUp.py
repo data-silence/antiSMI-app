@@ -23,7 +23,7 @@ user_query = st.text_input(
     placeholder="Pick a search setting and input your question here...")
 
 if user_query:
-    with st.spinner('It takes about 30 seconds to find the answer in a 25 year news stream'):
+    with st.spinner('It takes about 1 minute to find the answer in a 25 year news stream'):
         similar_news_df = get_answer_df(start_date=start_year, end_date=end_year, query=user_query)
 
     similar_news_df['year'] = similar_news_df['date'].apply(lambda x: x.year)

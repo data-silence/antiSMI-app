@@ -118,7 +118,7 @@ def draw_metrics():
 def draw_calendar_heatmap(df: pd.DataFrame):
     st.write('Last year news distribution')
     fig = calplot(
-        df[-365:],
+        df.iloc[-365:, :],
         x="date",
         y="count",
         total_height=210,
