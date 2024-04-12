@@ -16,9 +16,10 @@ from collections import Counter
 import numpy as np
 from numpy.linalg import norm
 import random
+import requests
 
-import httpx
-import asyncio
+# import httpx
+# import asyncio
 
 from src.constants import tm_start_date, tm_last_date, api_url, categories_dict
 
@@ -36,7 +37,7 @@ One-off src
 """
 
 
-def select_random_date():
+def select_random_date() -> dt.date:
     delta = tm_last_date - tm_start_date
     return tm_start_date + dt.timedelta(random.randint(0, delta.days))
 
@@ -61,8 +62,8 @@ def find_sim_news(df: pd.DataFrame, q_emb: list[float]):
     return best_result
 
 
-def get_time_period(start_date: datetime.date = datetime.now(),
-                    end_date: datetime.date = None) -> tuple:  # + timedelta(hours=3)
+def get_time_period(start_date: datetime.date = datetime.now(pytz.timezone('Europe/Moscow')),
+                    end_date: datetime.date = None) -> tuple:
     if end_date is None:
         end_date = start_date
 
@@ -103,16 +104,21 @@ From handlers interpreters
 """Common"""
 
 
-async def get_response(handler: str) -> json:
+# async def get_response(handler: str) -> json:
+#     """Converts json received from asmi API-handlers to dataframe"""
+#     async with httpx.AsyncClient() as client:
+#         timeout = httpx.Timeout(10.0, read=None)
+#         response = await client.get(handler, timeout=timeout)
+#         return response.json()
+
+def get_response(handler: str) -> json:
     """Converts json received from asmi API-handlers to dataframe"""
-    async with httpx.AsyncClient() as client:
-        timeout = httpx.Timeout(10.0, read=None)
-        response = await client.get(handler, timeout=timeout)
-        return response.json()
+    response = requests.get(handler)
+    return response.json()
 
 
 def get_df_from_response(handler: str) -> pd.DataFrame:
-    response = asyncio.run(get_response(handler))
+    response = get_response(handler)
     json_dump = json.dumps(response)
     df = pd.read_json(StringIO(json_dump))
     return df
@@ -185,11 +191,20 @@ def get_distinct_dates_news_df() -> pd.DataFrame:
     return distinct_dates_news_df
 
 
+# @st.cache_data
+# def get_digit_from_tm(value_name: str):
+#     """Get some digits from timemachine API-handlers"""
+#     handler = f"{api_url}/graphs/tm/{value_name}"
+#     response = asyncio.run(get_response(handler=handler))
+#     digit = json.dumps(response)
+#     return digit
+
+
 @st.cache_data
 def get_digit_from_tm(value_name: str):
     """Get some digits from timemachine API-handlers"""
     handler = f"{api_url}/graphs/tm/{value_name}"
-    response = asyncio.run(get_response(handler=handler))
+    response = get_response(handler=handler)
     digit = json.dumps(response)
     return digit
 

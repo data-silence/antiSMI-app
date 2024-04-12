@@ -27,7 +27,7 @@ media_types_dict = {'state': '💀️', 'independents': '🐈', 'foreign': '👽
 translation_countries = {'russian': 'Россия', 'ukranian': 'Украина', 'non ukranian': 'неУкраина'}
 
 tm_start_date = dt.date(1999, 8, 31)
-tm_last_date = dt.date(2023, 12, 31)
+tm_last_date = dt.date(2021, 12, 31)
 
 major_events = (
     {'start_date': dt.datetime(1999, 12, 31), 'end_date': dt.datetime(2000, 1, 3),

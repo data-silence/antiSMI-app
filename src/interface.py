@@ -124,6 +124,7 @@ def draw_time_selector():
     return date_selection
 
 
+@st.cache_data
 def draw_word_cloud(temp_df: pd.DataFrame):
     words = temp_df.title.str.split(' ').explode().values
     words = [word.lower() for word in words if word.lower() not in stop_words]

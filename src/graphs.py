@@ -29,8 +29,8 @@ def draw_countries_pie(df: pd.DataFrame):
     fig = px.pie(data_frame=data_frame, values='count', names=data_frame.index, height=600, hole=.3,
                  title=f'Russian-language media by {type_filter} [{border_filter}]')
     fig.update_traces(textposition="inside", textinfo='value+label')
-    fig.update_layout(annotations=[
-        dict(text=f'Total = {data_frame['count'].sum()}', x=0.5, y=0.5, font_size=16, showarrow=False)])
+    fig.update_layout(
+        annotations=[dict(text=f"Total = {data_frame['count'].sum()}", x=0.5, y=0.5, font_size=16, showarrow=False)])
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
@@ -95,26 +95,29 @@ def draw_top_charts(df):
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
+@st.cache_data
 def draw_tm_news_by_date(df):
     fig = px.bar(data_frame=df, y='count', x='date', height=600, title='News distribution by date')
     fig.update_traces(textposition="outside")
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
+@st.cache_data
 def draw_metrics():
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.metric(label='start date', value=get_digit_from_tm('min_date'))
     with col2:
-        st.metric(label='news', value=f'{int(get_digit_from_tm('news_amount')):,}')
+        st.metric(label='news', value=f"{int(get_digit_from_tm('news_amount')):,}")
     with col3:
-        st.metric(label='agencies', value=f'{int(get_digit_from_tm('agencies_amount')):,}')
+        st.metric(label='agencies', value=f"{int(get_digit_from_tm('agencies_amount')):,}")
     with col4:
-        st.metric(label='categories', value=f'{int(get_digit_from_tm('categories_amount')):,}')
+        st.metric(label='categories', value=f"{int(get_digit_from_tm('categories_amount')):,}")
     with col5:
         st.metric(label='last date', value=get_digit_from_tm('max_date'))
 
 
+@st.cache_data
 def draw_calendar_heatmap(df: pd.DataFrame):
     st.write('Last year news distribution')
     fig = calplot(
