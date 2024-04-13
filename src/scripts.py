@@ -2,35 +2,26 @@
 Used to receive data from backend API and pre-process for further design of streamlit application
 """
 
-import pandas as pd
 import streamlit as st
+
+import pandas as pd
+import numpy as np
+from numpy.linalg import norm
+from sklearn.cluster import AgglomerativeClustering
+
+from dataclasses import dataclass, field
+from collections import Counter
+
 import datetime as dt
 from datetime import datetime
 import pytz
 
-import json
-from io import StringIO
-from sklearn.cluster import AgglomerativeClustering
-from dataclasses import dataclass, field
-from collections import Counter
-import numpy as np
-from numpy.linalg import norm
 import random
 import requests
-
-# import httpx
-# import asyncio
+import json
+from io import StringIO
 
 from src.constants import tm_start_date, tm_last_date, api_url, categories_dict
-
-# import torch
-# from transformers import AutoTokenizer, AutoModel
-
-#
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-#
-# tokenizer = AutoTokenizer.from_pretrained("cointegrated/LaBSE-en-ru")
-# model = AutoModel.from_pretrained("cointegrated/LaBSE-en-ru").to(device)
 
 """
 One-off src
@@ -38,32 +29,27 @@ One-off src
 
 
 def select_random_date() -> dt.date:
+    """Selects a random date for the Time machine's random mode"""
     delta = tm_last_date - tm_start_date
     return tm_start_date + dt.timedelta(random.randint(0, delta.days))
 
 
-# def make_single_embs(sentences):
-#     encoded_input = tokenizer(sentences, padding=True, truncation=True, max_length=64, return_tensors='pt').to(device)
-#     with torch.no_grad():
-#         model_output = model(**encoded_input)
-#     embeddings = model_output.pooler_output
-#     embeddings = torch.nn.functional.normalize(embeddings)
-#     return embeddings[0].tolist()
+def cosine_similarity(a, b) -> float:
+    """Counts the cosine similarity between two vectors of embeddings of sentences"""
+    cos_similarity = np.dot(a, b) / (norm(a) * norm(b))
+    return cos_similarity
 
 
-def cos_simularity(a, b):
-    cos_sim = np.dot(a, b) / (norm(a) * norm(b))
-    return cos_sim
-
-
-def find_sim_news(df: pd.DataFrame, q_emb: list[float]):
-    df.loc[:, 'sim'] = df['embedding'].apply(lambda x: cos_simularity(q_emb, x))
+def find_sim_news(df: pd.DataFrame, q_emb: list[float]) -> pd.DataFrame:
+    """Finds the best sentence based on cosine similarity"""
+    df.loc[:, 'sim'] = df['embedding'].apply(lambda x: cosine_similarity(q_emb, x))
     best_result = df[df.sim == df.sim.max()]
     return best_result
 
 
 def get_time_period(start_date: datetime.date = datetime.now(pytz.timezone('Europe/Moscow')),
                     end_date: datetime.date = None) -> tuple:
+    """Gets time period and news part based on start date and end date"""
     if end_date is None:
         end_date = start_date
 
@@ -104,13 +90,6 @@ From handlers interpreters
 """Common"""
 
 
-# async def get_response(handler: str) -> json:
-#     """Converts json received from asmi API-handlers to dataframe"""
-#     async with httpx.AsyncClient() as client:
-#         timeout = httpx.Timeout(10.0, read=None)
-#         response = await client.get(handler, timeout=timeout)
-#         return response.json()
-
 def get_response(handler: str) -> json:
     """Converts json received from asmi API-handlers to dataframe"""
     response = requests.get(handler)
@@ -147,7 +126,8 @@ def get_today_news(user_date: dt.date) -> pd.DataFrame:
 
 
 @st.cache_data
-def get_all_agencies():
+def get_all_agencies() -> pd.DataFrame:
+    """Gets all agencies dataframe"""
     handler_url = "/agencies/all"
     handler = f"{api_url}{handler_url}"
     df_all_agencies = get_df_from_response(handler=handler)
@@ -158,7 +138,7 @@ def get_all_agencies():
 
 
 def get_url_from_tm(start_date: datetime.date, end_date: datetime.date, query: str = None) -> str:
-    """Converts json received from timemachine API-handlers to dataframe"""
+    """Converts nessesary link for requests to Timemachine Service"""
     if query is None:
         handler = f"{api_url}/news/tm/{start_date}/{end_date}"
     else:
@@ -168,6 +148,7 @@ def get_url_from_tm(start_date: datetime.date, end_date: datetime.date, query: s
 
 @st.cache_data
 def get_date_df_from_tm(start_date: datetime.date, end_date: datetime.date) -> pd.DataFrame:
+    """Get news data from Timemachine Service based on start date and end date"""
     handler = get_url_from_tm(start_date=start_date, end_date=end_date)
     date_df = get_df_from_response(handler=handler)
     return date_df
@@ -175,6 +156,7 @@ def get_date_df_from_tm(start_date: datetime.date, end_date: datetime.date) -> p
 
 @st.cache_data(show_spinner=False)
 def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str) -> pd.DataFrame:
+    """Get news data from Timemachine Service based on user query and start date and end date"""
     handler = get_url_from_tm(start_date=start_date, end_date=end_date, query=query)
     answer_df = get_df_from_response(handler=handler)
     return answer_df
@@ -185,24 +167,15 @@ def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str
 
 @st.cache_data
 def get_distinct_dates_news_df() -> pd.DataFrame:
-    """Converts json received from timemachine API-handlers to dataframe"""
+    """Get dataframe of distinct news data from Timemachine Service for Vizualizer"""
     handler = f"{api_url}/graphs/tm/distinct_dates"
     distinct_dates_news_df = get_df_from_response(handler=handler)
     return distinct_dates_news_df
 
 
-# @st.cache_data
-# def get_digit_from_tm(value_name: str):
-#     """Get some digits from timemachine API-handlers"""
-#     handler = f"{api_url}/graphs/tm/{value_name}"
-#     response = asyncio.run(get_response(handler=handler))
-#     digit = json.dumps(response)
-#     return digit
-
-
 @st.cache_data
-def get_digit_from_tm(value_name: str):
-    """Get some digits from timemachine API-handlers"""
+def get_digit_from_tm(value_name: str) -> str:
+    """Allows you to fetch auxiliary values from the database for plotting purposes"""
     handler = f"{api_url}/graphs/tm/{value_name}"
     response = get_response(handler=handler)
     digit = json.dumps(response)
@@ -215,11 +188,13 @@ Mixin to preprocess the dataframe into the Service format
 
 
 class DataframeMixin:
+    """Functions common to News Services for processing news dataframes are stored here"""
 
     @staticmethod
     # @st.cache_data(show_spinner=False)
     def get_dataframe(service_name: str, start_date: datetime.date = None,
                       end_date: datetime.date = None) -> pd.DataFrame:
+        """Gets the news dataframe based on the service name, start date and end date"""
         df = None
 
         match service_name:
@@ -233,6 +208,7 @@ class DataframeMixin:
     @staticmethod
     def get_clusters_columns(service_name: str, start_date: datetime.date = None,
                              end_date: datetime.date = None) -> pd.DataFrame:
+        """Assigns a label to each news item based on the agglomerative clustering performed"""
         df = DataframeMixin.get_dataframe(service_name=service_name, start_date=start_date,
                                           end_date=end_date)
 
@@ -258,6 +234,7 @@ class DataframeMixin:
 
     @staticmethod
     def filter_df(df: pd.DataFrame, amount: int, categories: list, media_type: list) -> pd.DataFrame:
+        """The received news dataframe is filtered based on the filters applied by the user"""
         if media_type:
             df = df.loc[df['category'].isin(categories) & df['media_type'].isin(media_type)]
         else:
@@ -278,12 +255,14 @@ News Services
 
 @dataclass
 class Service:
+    """Used to initialise news services and define methods common to all types of services"""
     news_amount: int = 3
     categories: list[str] = field(default_factory=list)
     date_df: pd.DataFrame = None
     most_df: pd.DataFrame = None
 
-    def get_source_links(self, title: str):
+    def get_source_links(self, title: str) -> str:
+        """Collects links to primary sources to form news digests"""
         cluster = self.most_df.label[self.most_df.title == title].iloc[0]
 
         links_set = set()
@@ -296,6 +275,7 @@ class Service:
         return ' '.join(list(links_set))
 
     def leave_me_alone(self) -> pd.DataFrame:
+        """Forms the final representation of the news dataframe, removes unnecessary columns"""
         unique_labels = set(self.most_df.label.tolist())
         url_final_list = []
         for label in unique_labels:
@@ -307,6 +287,7 @@ class Service:
         return final_df
 
     def digest_dict(self) -> dict:
+        """Converts the news dataframe into a news dictionary for digest processing"""
         result_df = self.leave_me_alone()
         my_news = {}
         for category in result_df.category.unique():
@@ -326,12 +307,14 @@ class AsmiService(Service):
     media_type: list[str] = field(default_factory=list)
 
     def __post_init__(self):
+        """Initialise the news dataframes as class attributes"""
         self.categories = [category for category in categories_dict]
         self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name)
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories,
                                                 media_type=self.media_type)
 
     def set_params(self, news_amount: int, categories: list[str], media_type: list):
+        """Sets parameters for digest processing depending on users choice"""
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=news_amount, categories=categories,
                                                 media_type=media_type)
         self.news_amount, self.categories, self.media_type = news_amount, categories, media_type
@@ -351,6 +334,7 @@ class TimemachineService(Service):
         self.categories = categories_dict.keys()
 
     def set_params(self, start_date: dt.date, end_date: dt.date, news_amount: int, categories: list[str]):
+        """Sets parameters for digest processing depending on users choice"""
         if self.date_df is None:
             self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name, start_date=start_date,
                                                                end_date=end_date)
@@ -372,3 +356,10 @@ if __name__ == "__main__":
     # emb = make_single_embs('Повышение цен на продукты')
     # print(emb)
     get_digit_from_tm('news_amount')
+
+# async def get_response(handler: str) -> json:
+#     """Converts json received from asmi API-handlers to dataframe"""
+#     async with httpx.AsyncClient() as client:
+#         timeout = httpx.Timeout(10.0, read=None)
+#         response = await client.get(handler, timeout=timeout)
+#         return response.json()

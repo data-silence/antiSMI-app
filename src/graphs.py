@@ -1,10 +1,15 @@
-import plotly.express as px
-import pandas as pd
+"""
+Functions for plotting different graphs in Vizualizer section
+The name of the function corresponds to its purpose in the application
+"""
+
 import streamlit as st
+import pandas as pd
+
+import plotly.express as px
 from plotly_calplot import calplot
 
 from src.scripts import get_digit_from_tm
-
 from src.constants import translation_countries
 
 

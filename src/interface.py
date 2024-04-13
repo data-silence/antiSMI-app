@@ -1,3 +1,8 @@
+"""
+Functions for creating individual interface elements.
+The name of the function corresponds to its purpose in the application
+"""
+
 import streamlit as st
 import extra_streamlit_components as stx
 from src.constants import tm_start_date, tm_last_date, major_events
