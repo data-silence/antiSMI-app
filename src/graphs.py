@@ -1,5 +1,5 @@
 """
-Functions for plotting different graphs in Vizualizer section
+Functions for plotting different graphs in Visualizer section
 The name of the function corresponds to its purpose in the application
 """
 
@@ -13,7 +13,7 @@ from src.scripts import get_digit_from_tm
 from src.constants import translation_countries
 
 
-def draw_countries_pie(df: pd.DataFrame):
+def draw_countries_pie(df: pd.DataFrame) -> None:
     type_filter = st.radio(
         "Select the type:",
         ['region', 'country'],
@@ -39,7 +39,7 @@ def draw_countries_pie(df: pd.DataFrame):
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
-def draw_cities_barchart(df: pd.DataFrame):
+def draw_cities_barchart(df: pd.DataFrame) -> None:
     country_filter = st.radio(
         "Select a country",
         ['russian', 'ukranian', 'non ukranian'],
@@ -75,7 +75,7 @@ def draw_cities_barchart(df: pd.DataFrame):
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
-def draw_top_charts(df):
+def draw_top_charts(df: pd.DataFrame) -> None:
     key_features = (
         'type', 'rf_feds_subj', 'settlement_type', 'settlement_name', 'street', 'street_type', 'last', 'first')
 
@@ -101,14 +101,14 @@ def draw_top_charts(df):
 
 
 @st.cache_data
-def draw_tm_news_by_date(df):
+def draw_tm_news_by_date(df: pd.DataFrame) -> None:
     fig = px.bar(data_frame=df, y='count', x='date', height=600, title='News distribution by date')
     fig.update_traces(textposition="outside")
     st.plotly_chart(fig, theme="streamlit", use_container_width=True)
 
 
 @st.cache_data
-def draw_metrics():
+def draw_metrics() -> None:
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.metric(label='start date', value=get_digit_from_tm('min_date'))
@@ -123,7 +123,7 @@ def draw_metrics():
 
 
 @st.cache_data
-def draw_calendar_heatmap(df: pd.DataFrame):
+def draw_calendar_heatmap(df: pd.DataFrame) -> None:
     st.write('Last year news distribution')
     fig = calplot(
         df.iloc[-365:, :],

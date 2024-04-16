@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import nltk
 from nltk.corpus import stopwords
 
-nltk.download("stopwords")
+nltk.download("stopwords", quiet=True)
 
 load_dotenv()
 

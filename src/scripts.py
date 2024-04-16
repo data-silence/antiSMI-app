@@ -70,7 +70,7 @@ def get_today_day_params() -> tuple[dt.date, int]:
 
 
 """
-From handlers interpreters
+Getters from handlers
 """
 
 """Common"""
@@ -89,7 +89,7 @@ def get_df_from_response(handler: str) -> pd.DataFrame:
     return df
 
 
-"""Get from Asmi Service"""
+"""For Asmi Service"""
 
 
 # @st.cache_data
@@ -120,7 +120,7 @@ def get_all_agencies() -> pd.DataFrame:
     return df_all_agencies
 
 
-"""Get from Timemachine Service"""
+"""For Timemachine Service"""
 
 
 def get_url_from_tm(start_date: datetime.date, end_date: datetime.date, query: str = None) -> str:
@@ -148,7 +148,7 @@ def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str
     return answer_df
 
 
-"""Get for Graphs"""
+"""For Graphs"""
 
 
 @st.cache_data

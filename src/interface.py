@@ -5,15 +5,20 @@ The name of the function corresponds to its purpose in the application
 
 import streamlit as st
 import extra_streamlit_components as stx
-from src.constants import tm_start_date, tm_last_date, major_events
-from src.scripts import select_random_date
+
 import datetime as dt
-from src.scripts import AsmiService, TimemachineService
-from src.constants import categories_dict, media_types_dict, stop_words
+from dateutil.relativedelta import relativedelta
+
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import pandas as pd
-from dateutil.relativedelta import relativedelta
+
+from src.constants import tm_start_date, tm_last_date, major_events, categories_dict, media_types_dict, stop_words
+from src.scripts import select_random_date, AsmiService, TimemachineService
+
+"""
+Common selectors
+"""
 
 
 def draw_toggle(category_list: list) -> list:
@@ -21,11 +26,6 @@ def draw_toggle(category_list: list) -> list:
     zip_dict = {el[0]: el[1] for el in zip(category_list, category_selection)}
     categories_selection = [category for category, is_presence in zip_dict.items() if is_presence]
     return categories_selection
-
-
-def draw_news_amount_selection(key: int) -> int:
-    news_amount_selection = st.sidebar.slider('News amount', 1, 10, 3, key=key)
-    return news_amount_selection
 
 
 def draw_media_types_selection() -> list:
@@ -41,6 +41,11 @@ def draw_categories_selection() -> list:
     categories_types = [category for category in categories_dict]
     categories_selection = draw_toggle(categories_types)
     return categories_selection
+
+
+"""
+Sidebar
+"""
 
 
 def draw_sidebar(page_name: str) -> tuple | bool:
@@ -66,35 +71,24 @@ def draw_sidebar(page_name: str) -> tuple | bool:
             return news_amount_selection, categories_selection
 
 
-# def draw_sidebar(page_name: str) -> tuple | bool | int:
-#     news_amount_selection = draw_news_amount_selection()
-#     st.sidebar.header("Pickup news you want:")
-#
-#     match page_name:
-#         case 'Last 24 hours' | 'Last fresh':
-#
-#             media_selection = draw_media_types_selection()
-#             categories_selection = draw_categories_selection()
-#
-#             if not media_selection or not categories_selection:
-#                 return False
-#
-#             return news_amount_selection, categories_selection, media_selection
-#
-#         case 'Sources comparison':
-#             st.sidebar.info('Allows you to compare the political news of the day depending on the source')
-#             return news_amount_selection
-#
-#         case _:
-#             st.sidebar.caption('Categories')
-#             categories_types = [category for category in categories_dict]
-#             categories_selection = draw_toggle(categories_types)
-#
-#             return news_amount_selection, categories_selection
+"""
+News representations
+"""
+
+
+def draw_single_news(all_news: list, painter) -> None:
+    for news in all_news:
+        painter.write(news[0].time())
+        painter.write(news[1])
+        painter.caption(news[2])
+        links_list = news[3].split(' ')
+        source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
+        capt = painter.expander("...", False)
+        capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
 
 
 @st.cache_resource
-def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'single'):
+def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'single') -> None:
     user_news_dict = news_service.digest_dict()
     selected_categories = list(user_news_dict.keys())
 
@@ -115,23 +109,87 @@ def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'sin
                 painter = st
                 draw_single_news(all_news, painter)
         case 'compare':
-            painter = st
-            compared_category = list(user_news_dict.keys())[0]
-            draw_single_news(user_news_dict[compared_category], painter)
+            if selected_categories:
+                painter = st
+                compared_category = selected_categories[0]
+                draw_single_news(user_news_dict[compared_category], painter)
 
 
-def draw_single_news(all_news: list, painter) -> None:
-    for news in all_news:
-        painter.write(news[0].time())
-        painter.write(news[1])
-        painter.caption(news[2])
-        links_list = news[3].split(' ')
-        source_links = [f"<a href='{el}'>{i + 1}</a>" for i, el in enumerate(links_list)]
-        capt = painter.expander("...", False)
-        capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
+@st.cache_data
+def draw_word_cloud(temp_df: pd.DataFrame) -> None:
+    words = temp_df.title.str.split(' ').explode().values
+    words = [word.lower() for word in words if word.lower() not in stop_words]
+
+    wc = WordCloud(background_color="black", width=1600, height=800)
+    wc.generate(" ".join(words))
+
+    fig, ax = plt.subplots(1, 1, figsize=(20, 10))
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    ax.set_title(f"Picture of the day", fontsize=30)
+    ax.imshow(wc, alpha=0.98)
+    st.pyplot(fig)
 
 
-def draw_timemachine_selector():
+"""
+Nowadays main page
+"""
+
+
+def draw_nowadays_tab1(news_amount_selection: int, category_selection: list, media_selection: list) -> None:
+    news_service = AsmiService()
+    news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
+                            media_type=media_selection)
+    with st.expander("Picture of the day as a tag's cloud - expand to see..."):
+        draw_word_cloud(news_service.date_df)
+    draw_digest(news_service, mode='single')
+
+
+def draw_nowadays_tab2(news_amount_selection: int, category_selection: list, media_selection: list) -> None:
+    news_service = AsmiService(date_mode='precision')
+    news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
+                            media_type=media_selection)
+    with st.expander("Picture of the day as a tag's cloud - expand to see..."):
+        draw_word_cloud(news_service.date_df)
+    draw_digest(news_service, mode='single')
+
+
+def draw_nowadays_tab3(news_amount_selection: int) -> None:
+    st.error(
+        'In this mode you can only configure the number of news items and the category below. '
+        'Other settings from the sidebar do not affect the result')
+    st.error('This mode does not show all news: neutral and non-political resources are not represented')
+    news_service = AsmiService()
+    comparison_categories = st.radio(
+        "Choose a category to compare:",
+        ['economy', 'society', 'entertainment'],
+        horizontal=True, index=0
+    )
+    comparison_category = [comparison_categories]
+    # comparison_media = [media.title() for media in media_types_dict]
+    comparison_media = [media for media in news_service.date_df.media_type.value_counts().index.tolist() if
+                        media not in ["Neutral", "Non-political"]]
+
+    columns_amount = len(comparison_media)
+    columns = st.columns(columns_amount)
+
+    for i, column in enumerate(columns):
+        user_media = [comparison_media[i]]
+        news_service.set_params(news_amount=news_amount_selection, categories=comparison_category,
+                                media_type=user_media)
+        with column:
+            agency_type = comparison_media[i]
+            agency_emoj = media_types_dict[agency_type.lower()]
+            column.header(agency_emoj + ' ' + agency_type)
+            draw_digest(news_service, mode='compare')
+
+
+"""
+Timemachine main page
+"""
+
+
+def draw_timemachine_selector() -> tuple:
     st.info(
         """This a is time machine! It can throw you into the news stream of the past. Any day in the last 25 years.""")
     mode = st.radio(
@@ -175,26 +233,20 @@ def draw_timemachine_selector():
     return date_selection
 
 
-@st.cache_data
-def draw_word_cloud(temp_df: pd.DataFrame):
-    words = temp_df.title.str.split(' ').explode().values
-    words = [word.lower() for word in words if word.lower() not in stop_words]
-
-    wc = WordCloud(background_color="black", width=1600, height=800)
-    wc.generate(" ".join(words))
-
-    fig, ax = plt.subplots(1, 1, figsize=(20, 10))
-    plt.axis("off")
-    plt.tight_layout(pad=0)
-    ax.set_title(f"Picture of the day", fontsize=30)
-    ax.imshow(wc, alpha=0.98)
-    st.pyplot(fig)
-
-
-def draw_query_settings():
+def draw_query_settings() -> tuple:
     st.sidebar.header("Search Settings:")
     years = st.sidebar.slider('Time frame', 1999, 2021, (1999, 2021))
     start_year = dt.datetime(years[0], 1, 1)
     end_year = dt.datetime(years[1], 12, 31)
     news_amount = st.sidebar.slider('News amount', 1, 100, 50)
     return start_year, end_year, news_amount
+
+
+def draw_tm_tab(start_date: dt.date, end_date: dt.date, news_amount: int, categories: list) -> None:
+    news_service = TimemachineService()
+    news_service.set_params(start_date=start_date, end_date=end_date, news_amount=news_amount,
+                            categories=categories)
+    with st.expander("Picture of the day as a tag's cloud"):
+        draw_word_cloud(news_service.date_df)
+    with st.spinner('It takes about 30 seconds to fly in a time machine...'):
+        draw_digest(news_service=news_service, mode='single')
