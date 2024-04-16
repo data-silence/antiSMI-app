@@ -14,7 +14,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from src.constants import tm_start_date, tm_last_date, major_events, categories_dict, media_types_dict, stop_words
-from src.scripts import select_random_date, AsmiService, TimemachineService
+from src.scripts import select_random_date
+from src.services import AsmiService, TimemachineService
 
 """
 Common selectors
@@ -155,10 +156,10 @@ def draw_nowadays_tab2(news_amount_selection: int, category_selection: list, med
 
 
 def draw_nowadays_tab3(news_amount_selection: int) -> None:
-    st.error(
-        'In this mode you can only configure the number of news items and the category below. '
-        'Other settings from the sidebar do not affect the result')
-    st.error('This mode does not show all news: neutral and non-political resources are not represented')
+    with st.expander("This mode doesn't work the way you might expect it to work. Click to learn more"):
+        st.error('1. In this mode you can only configure the number of news items and the category below. '
+                 'Other settings from the sidebar do not affect the result. ')
+        st.error('2. This mode does not show all news: neutral and non-political resources are not represented')
     news_service = AsmiService()
     comparison_categories = st.radio(
         "Choose a category to compare:",

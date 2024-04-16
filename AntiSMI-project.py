@@ -28,6 +28,8 @@ with col1:
     * The most popular news article of today by categories
     * Ability to research all sources of any news on the agency's website
     * Picture of the day using the tag cloud
+    * The ability to visually compare the the day news from different sources
+    * A similar app for telegram: @antiSMI_bot
 
     ## 📊 Visualizer:
     Here are graphs about the structure of Russian media and news flow:
@@ -50,7 +52,8 @@ with col2:
     * Today in past: find out what happened on the same day many years ago
     * Presets: select any specified important event in the history of Russia to find out the main news of that day
     * Manual: select the flight day to the past manually
-    * Random: let you to pick a date in the past automatically 
+    * Random: let you to pick a date in the past automatically
+    * A similar app for telegram: @time_mashine_bot 
 
     ## 📖 About:
     * Some info about projects

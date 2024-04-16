@@ -8,7 +8,7 @@ st.set_page_config(
 )
 
 st.image('img/1.png', use_column_width='auto',
-         caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
+         caption='Nowadays has an analogue with advanced functionality in Telegram - @antiSMI_bot ')
 
 st.write("# What is happening in Russia today?")
 st.divider()

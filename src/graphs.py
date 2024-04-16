@@ -9,8 +9,8 @@ import pandas as pd
 import plotly.express as px
 from plotly_calplot import calplot
 
-from src.scripts import get_digit_from_tm
 from src.constants import translation_countries
+from src.handlers import get_digit_from_tm
 
 
 def draw_countries_pie(df: pd.DataFrame) -> None:

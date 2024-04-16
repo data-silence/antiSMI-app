@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
-from src.scripts import get_answer_df
+
+from src.handlers import get_answer_df
 from src.interface import draw_query_settings
 
 st.set_page_config(

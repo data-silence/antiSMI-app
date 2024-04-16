@@ -2,7 +2,7 @@ import streamlit as st
 
 from src.graphs import draw_countries_pie, draw_cities_barchart, draw_top_charts, draw_tm_news_by_date, \
     draw_calendar_heatmap, draw_metrics
-from src.scripts import get_all_agencies, get_distinct_dates_news_df
+from src.handlers import get_all_agencies, get_distinct_dates_news_df
 
 st.set_page_config(
     page_title="AntiSMI project",
