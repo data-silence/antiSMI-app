@@ -1,5 +1,5 @@
 import streamlit as st
-from src.constants import media_types_dict
+from src.constants import media_types_dict, categories_dict
 from src.interface import draw_sidebar, draw_word_cloud, draw_digest
 from src.scripts import AsmiService
 
@@ -13,38 +13,56 @@ st.image('img/1.png', use_column_width='auto',
          caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
 st.write("# What is happening in Russia today?")
-news_service = AsmiService()
 st.divider()
 
-st.caption("Choose whether you want to compare how different types of media cover today's events.")
-is_comparison_mode = st.toggle('Comparison mode')
-
-if user_selection := draw_sidebar('Now'):
+if user_selection := draw_sidebar('Nowadays'):
     news_amount_selection, category_selection, media_selection = user_selection
 
-    columns_amount = len(media_selection)
-    match is_comparison_mode:
-        case True:
-            selected_media = (*media_selection, 'Non-political', 'Neutral')
-            with st.expander("Picture of the day as a tag's cloud - expand to see..."):
-                draw_word_cloud(news_service.date_df.loc[news_service.date_df['media_type'].isin(selected_media)])
+    st.info(
+        """Choose a mode to read today's news""")
 
-            columns = st.columns(columns_amount)
-            for i, column in enumerate(columns):
-                user_media = [media_selection[i], 'Non-political', 'Neutral']
-                news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
-                                        media_type=user_media)
-                with column:
-                    agency_type = media_selection[i]
-                    agency_emoj = media_types_dict[agency_type.lower()]
-                    column.header(agency_emoj + ' ' + agency_type)
-                    draw_digest(news_service, mode='multi')
-        case False:
-            news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
-                                    media_type=media_selection)
+    tab1, tab2, tab3 = st.tabs(["Last 24 hours", "Last fresh", "Comparison"])
 
-            with st.expander("Picture of the day as a tag's cloud - expand to see..."):
-                draw_word_cloud(news_service.date_df)
-            draw_digest(news_service, mode='single')
+    with tab1:
+        news_service = AsmiService()
+        news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
+                                media_type=media_selection)
+        with st.expander("Picture of the day as a tag's cloud - expand to see..."):
+            draw_word_cloud(news_service.date_df)
+        draw_digest(news_service, mode='single')
+
+    with tab2:
+        news_service = AsmiService(date_mode='precision')
+        news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
+                                media_type=media_selection)
+        with st.expander("Picture of the day as a tag's cloud - expand to see..."):
+            draw_word_cloud(news_service.date_df)
+        draw_digest(news_service, mode='single')
+
+    with tab3:
+        st.error(
+            'In this mode you can only configure the number of news items and the category below. '
+            'Other settings from the sidebar do not affect the result')
+        news_service = AsmiService()
+        comparison_categories = st.radio(
+            "Choose a category to compare:",
+            [category for category in categories_dict],
+            horizontal=True, index=0
+        )
+        comparison_category = [comparison_categories]
+        comparison_media = [media.title() for media in media_types_dict]
+
+        columns_amount = len(comparison_media)
+        columns = st.columns(columns_amount)
+
+        for i, column in enumerate(columns):
+            user_media = [comparison_media[i]]
+            news_service.set_params(news_amount=news_amount_selection, categories=comparison_category,
+                                    media_type=user_media)
+            with column:
+                agency_type = comparison_media[i]
+                agency_emoj = media_types_dict[agency_type.lower()]
+                column.header(agency_emoj + ' ' + agency_type)
+                draw_digest(news_service, mode='compare')
 else:
-    st.error("Please select at least one media type from the sidebar settings menu")
+    st.error("Please select at least one media type and category from the sidebar settings menu")

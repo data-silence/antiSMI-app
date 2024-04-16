@@ -47,40 +47,26 @@ def find_sim_news(df: pd.DataFrame, q_emb: list[float]) -> pd.DataFrame:
     return best_result
 
 
-def get_time_period(start_date: datetime.date = datetime.now(pytz.timezone('Europe/Moscow')),
-                    end_date: datetime.date = None) -> tuple:
-    """Gets time period and news part based on start date and end date"""
-    if end_date is None:
-        end_date = start_date
+def get_today_day_params() -> tuple[dt.date, int]:
+    """Gets time part based on current Moscow time"""
 
-    start = datetime(year=start_date.year, month=start_date.month, day=start_date.day, hour=00, minute=00)
-    end = datetime(year=end_date.year, month=end_date.month, day=end_date.day, hour=23, minute=59)
-    one_day = dt.timedelta(days=1)
+    moscow_time = datetime.now(pytz.timezone('Europe/Moscow'))
+    moscow_date = moscow_time.date()
+
     part = None
 
-    if start_date == datetime.today():
-        if start_date.hour in range(0, 10):
-            start = start.replace(hour=20, minute=56) - one_day
-            end = end.replace(hour=22, minute=55) - one_day
-            part = 0
-        if start_date.hour in range(10, 14):
-            start = start.replace(hour=22, minute=56) - one_day
-            end = end.replace(hour=8, minute=55)
-            part = 1
-        if start_date.hour in range(14, 18):
-            start = start.replace(hour=8, minute=56)
-            end = end.replace(hour=12, minute=55)
-            part = 2
-        if start_date.hour in range(18, 22):
-            start = start.replace(hour=12, minute=56)
-            end = end.replace(hour=16, minute=55)
-            part = 3
-        if start_date.hour in range(22, 24):
-            start = start.replace(hour=16, minute=56)
-            end = end.replace(hour=20, minute=55)
-            part = 4
+    if moscow_time.hour in range(0, 10):
+        part = 0
+    if moscow_time.hour in range(10, 14):
+        part = 1
+    if moscow_time.hour in range(14, 18):
+        part = 2
+    if moscow_time.hour in range(18, 22):
+        part = 3
+    if moscow_time.hour in range(22, 24):
+        part = 4
 
-    return start, end, part
+    return moscow_date, part
 
 
 """
@@ -118,8 +104,8 @@ def get_today_news_old_edition(start: dt.datetime, end: dt.datetime, part: str) 
 
 
 @st.cache_data
-def get_today_news(user_date: dt.date) -> pd.DataFrame:
-    handler_url = f"/news/asmi/date_news/{user_date}"
+def get_today_news(user_date: dt.date, date_part: int, date_mode: str = 'all') -> pd.DataFrame:
+    handler_url = f"/news/asmi/date_news/{user_date}/{date_part}/{date_mode}"
     handler = f"{api_url}{handler_url}"
     df_today_news = get_df_from_response(handler=handler)
     return df_today_news
@@ -138,7 +124,7 @@ def get_all_agencies() -> pd.DataFrame:
 
 
 def get_url_from_tm(start_date: datetime.date, end_date: datetime.date, query: str = None) -> str:
-    """Converts nessesary link for requests to Timemachine Service"""
+    """Converts necessary link for requests to Timemachine Service"""
     if query is None:
         handler = f"{api_url}/news/tm/{start_date}/{end_date}"
     else:
@@ -167,7 +153,7 @@ def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str
 
 @st.cache_data
 def get_distinct_dates_news_df() -> pd.DataFrame:
-    """Get dataframe of distinct news data from Timemachine Service for Vizualizer"""
+    """Get dataframe of distinct news data from Timemachine Service for Visualizer"""
     handler = f"{api_url}/graphs/tm/distinct_dates"
     distinct_dates_news_df = get_df_from_response(handler=handler)
     return distinct_dates_news_df
@@ -193,24 +179,24 @@ class DataframeMixin:
     @staticmethod
     # @st.cache_data(show_spinner=False)
     def get_dataframe(service_name: str, start_date: datetime.date = None,
-                      end_date: datetime.date = None) -> pd.DataFrame:
+                      end_date: datetime.date = None, date_mode: str = None) -> pd.DataFrame:
         """Gets the news dataframe based on the service name, start date and end date"""
         df = None
 
         match service_name:
             case 'asmi':
-                user_date = datetime.now(pytz.timezone('Europe/Moscow')).date()
-                df = get_today_news(user_date=user_date)
+                user_date, part = get_today_day_params()
+                df = get_today_news(user_date=user_date, date_part=part, date_mode=date_mode)
             case 'tm':
                 df = get_date_df_from_tm(start_date=start_date, end_date=end_date)
         return df
 
     @staticmethod
     def get_clusters_columns(service_name: str, start_date: datetime.date = None,
-                             end_date: datetime.date = None) -> pd.DataFrame:
-        """Assigns a label to each news item based on the agglomerative clustering performed"""
+                             end_date: datetime.date = None, date_mode: str = None) -> pd.DataFrame:
+        """Assigns a label to each news item based on the agglomerate clustering performed"""
         df = DataframeMixin.get_dataframe(service_name=service_name, start_date=start_date,
-                                          end_date=end_date)
+                                          end_date=end_date, date_mode=date_mode)
 
         if len(df) > 1:  # clustering is possible only if the number of news items is more than one
             clust_model = AgglomerativeClustering(n_clusters=None, metric='cosine', linkage='complete',
@@ -282,7 +268,7 @@ class Service:
             avg_emb = np.array(list(self.most_df.embedding[self.most_df.label == label])).mean(axis=0)
             best_url = find_sim_news(self.most_df, avg_emb).url.index[0]
             url_final_list.append(best_url)
-        final_df = self.most_df[self.most_df.index.isin(url_final_list)].drop(columns=['sim', 'embedding', 'label'])
+        final_df = self.most_df[self.most_df.index.isin(url_final_list)].drop(columns=['embedding', 'label'])
         final_df.links = final_df.title.apply(lambda x: self.get_source_links(x))
         return final_df
 
@@ -305,11 +291,12 @@ class AsmiService(Service):
     """
     service_name: str = 'asmi'
     media_type: list[str] = field(default_factory=list)
+    date_mode: str = 'all'
 
     def __post_init__(self):
         """Initialise the news dataframes as class attributes"""
         self.categories = [category for category in categories_dict]
-        self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name)
+        self.date_df = DataframeMixin.get_clusters_columns(service_name=self.service_name, date_mode=self.date_mode)
         self.most_df = DataframeMixin.filter_df(self.date_df, amount=self.news_amount, categories=self.categories,
                                                 media_type=self.media_type)
 

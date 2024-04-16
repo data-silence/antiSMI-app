@@ -23,20 +23,34 @@ def draw_toggle(category_list: list) -> list:
     return categories_selection
 
 
+def draw_news_amount_selection(key: int) -> int:
+    news_amount_selection = st.sidebar.slider('News amount', 1, 10, 3, key=key)
+    return news_amount_selection
+
+
+def draw_media_types_selection() -> list:
+    st.sidebar.caption('Media types')
+    media_types = [media for media in media_types_dict]
+    media_selection = draw_toggle(media_types)
+    media_selection = [media.title() for media in media_selection]
+    return media_selection
+
+
+def draw_categories_selection() -> list:
+    st.sidebar.caption('Categories')
+    categories_types = [category for category in categories_dict]
+    categories_selection = draw_toggle(categories_types)
+    return categories_selection
+
+
 def draw_sidebar(page_name: str) -> tuple | bool:
     st.sidebar.header("Pickup news you want:")
     news_amount_selection = st.sidebar.slider('News amount', 1, 10, 3)
 
     match page_name:
-        case 'Now':
-            st.sidebar.caption('Media types')
-            media_types = [media for media in media_types_dict]
-            media_selection = draw_toggle(media_types)
-            media_selection = [media.title() for media in media_selection]
-
-            st.sidebar.caption('Categories')
-            categories_types = [category for category in categories_dict]
-            categories_selection = draw_toggle(categories_types)
+        case 'Nowadays':
+            media_selection = draw_media_types_selection()
+            categories_selection = draw_categories_selection()
 
             if not media_selection or not categories_selection:
                 return False
@@ -44,11 +58,39 @@ def draw_sidebar(page_name: str) -> tuple | bool:
             return news_amount_selection, categories_selection, media_selection
 
         case _:
-            st.sidebar.caption('Categories')
-            categories_types = [category for category in categories_dict]
-            categories_selection = draw_toggle(categories_types)
+            categories_selection = draw_categories_selection()
+
+            if not categories_selection:
+                return False
 
             return news_amount_selection, categories_selection
+
+
+# def draw_sidebar(page_name: str) -> tuple | bool | int:
+#     news_amount_selection = draw_news_amount_selection()
+#     st.sidebar.header("Pickup news you want:")
+#
+#     match page_name:
+#         case 'Last 24 hours' | 'Last fresh':
+#
+#             media_selection = draw_media_types_selection()
+#             categories_selection = draw_categories_selection()
+#
+#             if not media_selection or not categories_selection:
+#                 return False
+#
+#             return news_amount_selection, categories_selection, media_selection
+#
+#         case 'Sources comparison':
+#             st.sidebar.info('Allows you to compare the political news of the day depending on the source')
+#             return news_amount_selection
+#
+#         case _:
+#             st.sidebar.caption('Categories')
+#             categories_types = [category for category in categories_dict]
+#             categories_selection = draw_toggle(categories_types)
+#
+#             return news_amount_selection, categories_selection
 
 
 @st.cache_resource
@@ -72,6 +114,10 @@ def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'sin
                 all_news = user_news_dict[category]
                 painter = st
                 draw_single_news(all_news, painter)
+        case 'compare':
+            painter = st
+            compared_category = list(user_news_dict.keys())[0]
+            draw_single_news(user_news_dict[compared_category], painter)
 
 
 def draw_single_news(all_news: list, painter) -> None:
@@ -85,7 +131,7 @@ def draw_single_news(all_news: list, painter) -> None:
         capt.caption(f'sources & related: {source_links}', unsafe_allow_html=True)
 
 
-def draw_time_selector():
+def draw_timemachine_selector():
     st.info(
         """This a is time machine! It can throw you into the news stream of the past. Any day in the last 25 years.""")
     mode = st.radio(

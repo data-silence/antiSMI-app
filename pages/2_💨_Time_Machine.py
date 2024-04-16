@@ -1,5 +1,5 @@
 import streamlit as st
-from src.interface import draw_sidebar, draw_time_selector, draw_word_cloud, draw_digest
+from src.interface import draw_sidebar, draw_timemachine_selector, draw_word_cloud, draw_digest
 from src.scripts import TimemachineService
 
 st.set_page_config(page_title="Time machine", page_icon="💨", layout="wide")
@@ -11,7 +11,7 @@ news_service = TimemachineService()
 news_amount, categories = draw_sidebar('Time Machine')
 
 try:
-    if dates := draw_time_selector():
+    if dates := draw_timemachine_selector():
         start_date, end_date = dates
         news_service.set_params(start_date=start_date, end_date=end_date, news_amount=news_amount,
                                 categories=categories)
