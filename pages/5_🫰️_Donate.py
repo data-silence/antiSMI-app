@@ -1,18 +1,20 @@
 import streamlit as st
 
+from src.interface import write_contact
+
 st.set_page_config(
     page_title="AntiSMI project",
     page_icon="📰️",
     layout="wide"
 )
 
+write_contact()
+
 st.image('https://raw.githubusercontent.com/data-silence/banks-clients/master/img/bgr.png', use_column_width='auto',
          caption='Developing tools for media and social researchers: enjoy-ds@pm.me')
 
-st.sidebar.header("About")
-
 st.write("# Ways to help the project")
-# st.info("Here you will find information on how to help the project")
+
 st.info(
     'This project is developed and maintained by only one person. It requires a lot of time and at least $1,'
     '000 a month for servers and hosting. You can help to continue the project. Thank you.')

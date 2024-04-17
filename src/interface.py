@@ -72,6 +72,13 @@ def draw_sidebar(page_name: str) -> tuple | bool:
             return news_amount_selection, categories_selection
 
 
+def write_contact():
+    st.sidebar.header("Contact:")
+    st.sidebar.markdown(':writing_hand: [@data_silence](https://t.me/data_silence)')
+    st.sidebar.markdown(':mailbox_with_no_mail: enjoy-ds@pm.me')
+    st.sidebar.markdown(':hammer_and_wrench:️ [Github](https://github.com/data-silence)')
+
+
 """
 News representations
 """
