@@ -1,17 +1,19 @@
 """Stores immutable data - common constants, dictionaries, lists"""
 
 import datetime as dt
-import os
-from dotenv import load_dotenv
+# import os
+# from dotenv import load_dotenv
 
 import nltk
 from nltk.corpus import stopwords
 
 nltk.download("stopwords", quiet=True)
 
-load_dotenv()
+# api_url = "http://127.0.0.1:8000"
+# load_dotenv()
+# api_url = os.getenv("API_URL")
 
-api_url = os.getenv("API_URL")
+api_url = "http://backend:8000"
 
 categories_dict = {
     'economy': {'emoj': '💰'},
