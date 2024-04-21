@@ -16,7 +16,7 @@ st.image('img/4.png', use_column_width='auto',
 st.sidebar.header("Visualizer")
 
 st.write("# Visualizer")
-st.sidebar.success("""Here yoy can find some graphs and research about the structure of Russian media and news flow""")
+st.sidebar.success("""Here you can find several charts and news researches about Russian media""")
 
 df_all_agencies = get_all_agencies()
 yandex_news_tab, antiSMI_tab, fun_research_tab = st.tabs(['Yandex News', 'Anti SMI', 'Fun Research'])

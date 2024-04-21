@@ -33,7 +33,7 @@ def get_df_from_response(handler: str) -> pd.DataFrame:
 """For Asmi Service"""
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_today_news(user_date: dt.date, date_part: int, date_mode: str = 'all') -> pd.DataFrame:
     handler_url = f"/news/asmi/date_news/{user_date}/{date_part}/{date_mode}"
     handler = f"{api_url}{handler_url}"
@@ -41,7 +41,7 @@ def get_today_news(user_date: dt.date, date_part: int, date_mode: str = 'all') -
     return df_today_news
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_all_agencies() -> pd.DataFrame:
     """Gets all agencies dataframe"""
     handler_url = "/agencies/all"
@@ -62,7 +62,7 @@ def get_url_from_tm(start_date: datetime.date, end_date: datetime.date, query: s
     return handler
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_date_df_from_tm(start_date: datetime.date, end_date: datetime.date) -> pd.DataFrame:
     """Get news data from Timemachine Service based on start date and end date"""
     handler = get_url_from_tm(start_date=start_date, end_date=end_date)
@@ -81,7 +81,7 @@ def get_answer_df(start_date: datetime.date, end_date: datetime.date, query: str
 """For Graphs"""
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_distinct_dates_news_df() -> pd.DataFrame:
     """Get dataframe of distinct news data from Timemachine Service for Visualizer"""
     handler = f"{api_url}/graphs/tm/distinct_dates"
@@ -89,7 +89,7 @@ def get_distinct_dates_news_df() -> pd.DataFrame:
     return distinct_dates_news_df
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_digit_from_tm(value_name: str) -> str:
     """Allows you to fetch auxiliary values from the database for plotting purposes"""
     handler = f"{api_url}/graphs/tm/{value_name}"
