@@ -12,9 +12,10 @@ from dateutil.relativedelta import relativedelta
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import pandas as pd
+import pymorphy2
 
 from src.constants import tm_start_date, tm_last_date, major_events, categories_dict, media_types_dict, stop_words
-from src.scripts import select_random_date
+from src.scripts import select_random_date, pymorphy2_311_hotfix
 from src.services import AsmiService, TimemachineService
 
 """
@@ -125,8 +126,11 @@ def draw_digest(news_service: AsmiService | TimemachineService, mode: str = 'sin
 
 @st.cache_data
 def draw_word_cloud(temp_df: pd.DataFrame) -> None:
+    pymorphy2_311_hotfix()
+    morph = pymorphy2.MorphAnalyzer()
+
     words = temp_df.title.str.split(' ').explode().values
-    words = [word.lower() for word in words if word.lower() not in stop_words]
+    words = [morph.parse(word)[0].normal_form for word in words if morph.parse(word)[0].normal_form not in stop_words]
 
     wc = WordCloud(background_color="black", width=1600, height=800)
     wc.generate(" ".join(words))

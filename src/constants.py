@@ -8,6 +8,7 @@ import nltk
 from nltk.corpus import stopwords
 
 nltk.download("stopwords", quiet=True)
+nltk.download('punkt', quiet=True)
 
 # api_url = "http://127.0.0.1:8000"
 # load_dotenv()
@@ -157,4 +158,4 @@ stop_words.extend(['что', 'это', 'так',
                    'который', 'мочь', 'весь',
                    'еще', 'также', 'свой',
                    'ещё', 'самый', 'ул', 'комментарий',
-                   'английский', 'язык', 'года', 'году'])
+                   'английский', 'язык', 'года', 'году', 'россия', 'рф', 'российский', 'россиянин', 'год'])
