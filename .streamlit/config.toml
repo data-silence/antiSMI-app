@@ -1,0 +1,6 @@
+[browser]
+gatherUsageStats = false
+
+[server]
+sslCertFile = './etc/ssl/certs/server.pem'
+sslKeyFile = './etc/ssl/private/myserver.key'
