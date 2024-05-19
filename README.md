@@ -2,7 +2,7 @@
 
 ![logo](https://github.com/data-silence/antiSMI-app/blob/master/img/1.png?raw=true)
 
-![Streamlit](https://img.shields.io/badge/Streamlit-black?style=flat-square&logo=Streamlit) ![Docker](https://img.shields.io/badge/docker-%230db7ed?style=flat-square&logo=Docker) ![sklearn](https://img.shields.io/badge/sklearn-black?style=flat-square&logo=sklearn)
+![Streamlit](https://img.shields.io/badge/Streamlit-black?style=flat-square&logo=Streamlit) ![Docker](https://img.shields.io/badge/docker-%230db7ed?style=flat-square&logo=Docker) ![Scikit-learn](https://img.shields.io/badge/Scikit--learn-black?style=flat-square&logo=Scikit-learn)
 
 ## Table of contents
 * [About](#about)
