@@ -19,7 +19,7 @@ st.write("# Visualizer")
 st.sidebar.success("""Here you can find several charts and news researches about Russian media""")
 
 df_all_agencies = get_all_agencies()
-yandex_news_tab, antiSMI_tab, fun_research_tab = st.tabs(['Yandex News', 'Anti SMI', 'Fun Research'])
+observer_tab, yandex_news_tab, fun_research_tab = st.tabs(['Observer', 'Yandex News', 'Fun Research'])
 
 with yandex_news_tab:
     st.info('This is graphs about Yandex News media agency partners on the eve of 2022')
@@ -32,8 +32,20 @@ with yandex_news_tab:
 
     draw_top_charts(df_all_agencies)
 
-with antiSMI_tab:
+with observer_tab:
     st.info('Here you will find a visualisation of the development of the AntiSMI project')
+
+    st.markdown("""
+    As part of the AntiSMI project, informational and graphical dashboards are created to monitor 
+    changes in the news space in real-time. 
+    
+    Some of these dashboards are [public](http://38.242.140.206:8080/superset/dashboard/dynamics/), 
+    allowing you to monitor and analyze with me. 
+    
+    Vizualizer is made to demonstrate some of my public research just in Power News.""")
+
+    st.divider()
+
     distinct_dates_news_df = get_distinct_dates_news_df()
 
     draw_metrics()

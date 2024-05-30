@@ -16,4 +16,4 @@ LABEL authors="data-silence"
 
 RUN apt-get -y update && apt-get install -y mc curl
 
-ENTRYPOINT ["streamlit", "run", "AntiSMI-project.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "Power-news.py", "--server.port=8501", "--server.address=0.0.0.0"]

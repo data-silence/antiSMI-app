@@ -18,17 +18,17 @@ st.write("# About project")
 with st.expander('How it started'):
     st.write(
         """
-    This site is only part of the project, and serves as a testing demonstration of newsroom ideas.
-    AntiSMI project is a research and still non-profit project at the intersection of ML and journalism that uses 
-    machine learning models to analyse changes in the news flow in real time, trying to create a fundamentally 
-    different way of consuming news in modern society.
-    
-    The project started with collecting and analysing information about partners of Yandex-news service as of the 
-    beginning of last peaceful summer 2021. 
-    
-    Due to stupid events around here, it keeps growing and changing and I have no control over it anymore. I don't know 
-    when or how it will end.
-     
+This site is only part of the AntiSMI project and serves as a test demonstration of newsroom ideas.
+
+The AntiSMI project is a research and non-profit initiative at the intersection of machine learning (ML) and journalism. 
+It uses machine learning models to analyze changes in the news flow in real-time, 
+aiming to create a fundamentally different way of consuming news in modern society.
+
+The project started by collecting and analyzing information about the partners of the Yandex News service 
+at the beginning of the last peaceful summer of 2021.
+
+Due to the unfortunate events occurring around us, the project continues to grow and change beyond my control. 
+I do not know when or how it will end.
         """
     )
 

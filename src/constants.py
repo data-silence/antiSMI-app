@@ -14,7 +14,9 @@ nltk.download('punkt', quiet=True)
 # load_dotenv()
 # api_url = os.getenv("API_URL")
 
-api_url = "http://backend:8000"
+# api_url = "http://backend:8000"
+
+api_url="http://38.242.140.206:8000"
 
 categories_dict = {
     'economy': {'emoj': '💰'},

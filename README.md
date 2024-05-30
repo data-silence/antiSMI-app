@@ -22,7 +22,7 @@ Important: You will not be able to properly deploy the application due to the ne
 
 1. Clone the repository into the empty directory selected for the project:
 `git clone https://github.com/data-silence/antiSMI-app`
-2. Make sure that docker is installed on the server. Build the image from the destination directory using the command `docker build -t -frontend`
+2. Make sure that docker is installed on the server. Build the image from the destination directory using the command `docker build -t frontend .`
 3. Start the container using `docker run -d --rm --name frontend -p 8501:8501 frontend`
 4. Your app will start on port 8501
 

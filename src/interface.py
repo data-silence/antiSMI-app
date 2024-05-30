@@ -158,12 +158,15 @@ def draw_nowadays_tab1(news_amount_selection: int, category_selection: list, med
 
 
 def draw_nowadays_tab2(news_amount_selection: int, category_selection: list, media_selection: list) -> None:
-    news_service = AsmiService(date_mode='precision')
-    news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
-                            media_type=media_selection)
-    with st.expander("Picture of the day as a tag's cloud - expand to see..."):
-        draw_word_cloud(news_service.date_df)
-    draw_digest(news_service, mode='single')
+    try:
+        news_service = AsmiService(date_mode='precision')
+        news_service.set_params(news_amount=news_amount_selection, categories=category_selection,
+                                media_type=media_selection)
+        with st.expander("Picture of the day as a tag's cloud - expand to see..."):
+            draw_word_cloud(news_service.date_df)
+        draw_digest(news_service, mode='single')
+    except KeyError:
+        st.error("The morning news has not yet been compiled, make an enquiry after 10am.")
 
 
 def draw_nowadays_tab3(news_amount_selection: int) -> None:
