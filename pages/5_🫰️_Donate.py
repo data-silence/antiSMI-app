@@ -16,8 +16,7 @@ st.image('https://raw.githubusercontent.com/data-silence/banks-clients/master/im
 st.write("# Ways to help the project")
 
 st.info(
-    'This project is developed and maintained by only one person. It takes time and money to maintain the services. '
-    'You can help to continue the project. Thank you.')
+    'It takes time and money to maintain the services. You can help to continue the project:')
 
 st.write('IBAN $: TR41 0013 4000 0210 3974 9000 02')
 st.write('IBAN €: TR14 0013 4000 0210 3974 9000 03')
